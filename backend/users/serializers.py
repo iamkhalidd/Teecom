@@ -5,6 +5,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'full_name', 'phone', 'role', 'avatar_url', 'is_verified', 'created_at')
+        read_only_fields = ('id', 'email', 'role', 'is_verified', 'created_at')
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

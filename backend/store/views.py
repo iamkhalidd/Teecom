@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, filters
 from .models import Category, Product, Cart, Order
 from .serializers import CategorySerializer, ProductSerializer, CartSerializer, OrderSerializer
+from core.permissions import IsOwnerOrAdmin
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
@@ -17,14 +18,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrAdmin)
 
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user)
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrAdmin)
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)

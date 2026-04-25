@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border, currentColor);
+  }
+}
+
+@layer base {
+  :root {
+    --background: #F5F5F5;
+    --foreground: #111111;
+    --card: #FFFFFF;
+    --card-foreground: #111111;
+    --popover: #FFFFFF;
+    --popover-foreground: #111111;
+    --primary: #000000;
+    --primary-foreground: #FFFFFF;
+    --secondary: #EFEFEF;
+    --secondary-foreground: #111111;
+    --muted: #EFEFEF;
+    --muted-foreground: #6B6B6B;
+    --accent: #EFEFEF;
+    --accent-foreground: #111111;
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+    --success: #22C55E;
+    --success-foreground: #FFFFFF;
+    --warning: #F59E0B;
+    --warning-foreground: #FFFFFF;
+    --border: #E5E5E5;
+    --input: #E5E5E5;
+    --ring: #111111;
+    --chart-1: #111111;
+    --chart-2: #6B6B6B;
+    --chart-3: #E5E5E5;
+    --chart-4: #F5F5F5;
+    --chart-5: #FFFFFF;
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: #111111;
+    --foreground: #F5F5F5;
+    --card: #1C1C1C;
+    --card-foreground: #F5F5F5;
+    --popover: #1C1C1C;
+    --popover-foreground: #F5F5F5;
+    --primary: #FFFFFF;
+    --primary-foreground: #111111;
+    --secondary: #2A2A2A;
+    --secondary-foreground: #F5F5F5;
+    --muted: #2A2A2A;
+    --muted-foreground: #A1A1A1;
+    --accent: #2A2A2A;
+    --accent-foreground: #F5F5F5;
+    --destructive: #EF4444;
+    --destructive-foreground: #F5F5F5;
+    --success: #22C55E;
+    --success-foreground: #F5F5F5;
+    --warning: #F59E0B;
+    --warning-foreground: #F5F5F5;
+    --border: #2A2A2A;
+    --input: #2A2A2A;
+    --ring: #F5F5F5;
+    --chart-1: #FFFFFF;
+    --chart-2: #A1A1A1;
+    --chart-3: #2A2A2A;
+    --chart-4: #1C1C1C;
+    --chart-5: #111111;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}

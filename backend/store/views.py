@@ -2,8 +2,8 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Count, Sum
-from .models import Category, Product, Cart, Order, Address
-from .serializers import CategorySerializer, ProductSerializer, CartSerializer, OrderSerializer
+from .models import Category, Product, Cart, Order, Address, Coupon, SpecialOffer
+from .serializers import CategorySerializer, ProductSerializer, CartSerializer, OrderSerializer, CouponSerializer, SpecialOfferSerializer
 from core.permissions import IsOwnerOrAdmin, IsAdminUser
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -36,6 +36,20 @@ class CartViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+class CouponViewSet(viewsets.ModelViewSet):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    permission_classes = [IsAdminUser]
+
+class SpecialOfferViewSet(viewsets.ModelViewSet):
+    queryset = SpecialOffer.objects.all()
+    serializer_class = SpecialOfferSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return [permissions.AllowAny()]
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer

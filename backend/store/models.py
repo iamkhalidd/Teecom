@@ -105,3 +105,28 @@ class Review(models.Model):
     rating = models.PositiveIntegerField()
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount_percentage = models.PositiveIntegerField()
+    is_active = models.BooleanField(default=True)
+    expiry_date = models.DateTimeField()
+    usage_limit = models.PositiveIntegerField(default=100)
+    used_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.code
+
+class SpecialOffer(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    discount_percentage = models.PositiveIntegerField()
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    image_url = models.URLField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    expiry_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title

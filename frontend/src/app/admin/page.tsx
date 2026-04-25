@@ -1,3 +1,6 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import {
   Users,
   Package,
@@ -5,44 +8,66 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
-  ArrowUpRight,
-  ArrowDownRight
+  ArrowUpRight
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-
-const stats = [
-  {
-    title: "Total Revenue",
-    value: "$128,430",
-    change: "+12.5%",
-    trend: "up",
-    icon: DollarSign,
-  },
-  {
-    title: "Total Orders",
-    value: "2,345",
-    change: "+18.2%",
-    trend: "up",
-    icon: ShoppingBag,
-  },
-  {
-    title: "Active Customers",
-    value: "1,203",
-    change: "-3.1%",
-    trend: "down",
-    icon: Users,
-  },
-  {
-    title: "Products",
-    value: "456",
-    change: "+4.3%",
-    trend: "up",
-    icon: Package,
-  },
-]
+import { api } from "@/lib/api"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const data = await api.admin.stats()
+        setStats(data)
+      } catch (err) {
+        console.error("Failed to fetch stats", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
+
+  if (loading) {
+    return <div className="p-8 space-y-8"><Skeleton className="h-20 w-full" /></div>
+  }
+
+  const statCards = [
+    {
+      title: "Total Revenue",
+      value: `$${stats?.total_revenue?.toLocaleString() || 0}`,
+      change: "+12.5%", // Demo change
+      trend: "up",
+      icon: DollarSign,
+    },
+    {
+      title: "Total Orders",
+      value: stats?.total_orders || 0,
+      change: "+18.2%",
+      trend: "up",
+      icon: ShoppingBag,
+    },
+    {
+      title: "Active Customers",
+      value: "1,203", // Placeholder for now
+      change: "-3.1%",
+      trend: "down",
+      icon: Users,
+    },
+    {
+      title: "Products",
+      value: "456", // Placeholder for now
+      change: "+4.3%",
+      trend: "up",
+      icon: Package,
+    },
+  ]
+
   return (
     <div className="p-8 space-y-8">
       <div>
@@ -51,7 +76,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <Card key={stat.title} className="border-none shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -84,18 +109,20 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center justify-between">
+              {stats?.recent_orders?.map((order: any) => (
+                <div key={order.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="h-10 w-10 rounded-full bg-muted" />
                     <div>
-                      <p className="font-semibold text-sm">Customer #{1024 + i}</p>
-                      <p className="text-xs text-muted-foreground">2 mins ago</p>
+                      <p className="font-semibold text-sm">Order #{order.order_number}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-sm">$245.00</p>
-                    <p className="text-[10px] uppercase font-bold text-success">Paid</p>
+                    <p className="font-bold text-sm">${order.total}</p>
+                    <p className={`text-[10px] uppercase font-bold ${order.status === 'paid' ? 'text-success' : 'text-warning'}`}>
+                      {order.status}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -105,29 +132,27 @@ export default function AdminDashboard() {
 
         <Card className="border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-bold">Top Products</CardTitle>
-            <Button variant="ghost" size="sm" className="gap-1">
-              View All <ArrowUpRight className="h-4 w-4" />
-            </Button>
+            <CardTitle className="text-lg font-bold">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-muted" />
-                    <div>
-                      <p className="font-semibold text-sm">Product Name {i}</p>
-                      <p className="text-xs text-muted-foreground">124 sales</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-sm">$1,200.00</p>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">In Stock</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+             <div className="grid grid-cols-2 gap-4">
+                <Button className="rounded-2xl h-20 flex flex-col gap-1" variant="outline" onClick={() => window.location.href='/admin/products'}>
+                   <Package className="h-5 w-5" />
+                   <span>Add Product</span>
+                </Button>
+                <Button className="rounded-2xl h-20 flex flex-col gap-1" variant="outline" onClick={() => window.location.href='/admin/orders'}>
+                   <ShoppingBag className="h-5 w-5" />
+                   <span>View Orders</span>
+                </Button>
+                <Button className="rounded-2xl h-20 flex flex-col gap-1" variant="outline" onClick={() => window.location.href='/admin/customers'}>
+                   <Users className="h-5 w-5" />
+                   <span>Manage Users</span>
+                </Button>
+                <Button className="rounded-2xl h-20 flex flex-col gap-1" variant="outline">
+                   <DollarSign className="h-5 w-5" />
+                   <span>Payouts</span>
+                </Button>
+             </div>
           </CardContent>
         </Card>
       </div>

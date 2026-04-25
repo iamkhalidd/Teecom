@@ -1,40 +1,40 @@
-import { Star, Heart, Plus } from "lucide-react"
+import { Heart, Star, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-interface ProductCardProps {
-  id: string
-  name: string
-  price: number
-  rating: number
-  sales: number
-  image: string
-}
-
-export default function ProductCard({ id, name, price, rating, sales, image }: ProductCardProps) {
+export default function ProductCard({ product }: { product: any }) {
   return (
     <div className="group relative flex flex-col gap-3">
-      <Link href={`/products/${id}`} className="relative aspect-square overflow-hidden rounded-3xl bg-secondary">
-        <div className="h-full w-full bg-zinc-200 transition-transform group-hover:scale-105" />
+      <Link href={`/products/${product.slug}`} className="relative aspect-square overflow-hidden rounded-3xl bg-[#EFEFEF]">
+        {product.images?.[0] && (
+          <img
+            src={product.images[0].image_url}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+          />
+        )}
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
-          className="absolute right-4 top-4 h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
+          className="absolute right-3 top-3 h-10 w-10 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
         >
-          <Heart className="h-4 w-4" />
+          <Heart className="h-5 w-5" />
         </Button>
       </Link>
+
       <div className="flex flex-col gap-1 px-1">
-        <h3 className="text-base font-bold leading-tight">{name}</h3>
-        <div className="flex items-center gap-2 text-sm">
-          <Star className="h-4 w-4 fill-primary text-primary" />
-          <span className="font-semibold">{rating}</span>
-          <span className="text-muted-foreground">| {sales} sold</span>
+        <h3 className="font-bold line-clamp-1">{product.name}</h3>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <Star className="h-3 w-3 fill-primary text-primary" />
+            <span className="text-xs font-semibold">{product.rating_average || "4.5"}</span>
+          </div>
+          <span className="text-xs text-muted-foreground">| {product.stock_quantity > 0 ? "In Stock" : "Out of Stock"}</span>
         </div>
         <div className="mt-1 flex items-center justify-between">
-          <span className="text-lg font-bold">${price.toFixed(2)}</span>
-          <Button size="icon" className="h-8 w-8 rounded-full">
-            <Plus className="h-4 w-4" />
+          <span className="text-lg font-bold">${product.price}</span>
+          <Button size="icon" className="h-10 w-10 rounded-full">
+            <ShoppingCart className="h-5 w-5" />
           </Button>
         </div>
       </div>

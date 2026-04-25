@@ -37,7 +37,8 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
-    image_url = models.URLField()
+    image = models.ImageField(upload_to='products/', null=True, blank=True)
+    image_url = models.URLField(null=True, blank=True)
     is_primary = models.BooleanField(default=False)
     sort_order = models.PositiveIntegerField(default=0)
 

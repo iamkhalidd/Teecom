@@ -5,7 +5,7 @@ import { Star, Minus, Plus, Heart, Truck, RefreshCcw, ShieldCheck } from "lucide
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export default function ProductInfo() {
+export default function ProductInfo({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState("40")
   const [selectedColor, setSelectedColor] = useState("brown")
@@ -21,11 +21,11 @@ export default function ProductInfo() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold">Suga Leather Shoes</h1>
+        <h1 className="text-3xl font-bold">{product.name}</h1>
         <div className="mt-2 flex items-center gap-4">
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-primary text-primary" />
-            <span className="font-semibold">4.7</span>
+            <span className="font-semibold">{product.rating_average || "4.7"}</span>
             <span className="text-sm text-muted-foreground">(5,387 reviews)</span>
           </div>
           <span className="text-sm font-semibold px-2 py-1 bg-secondary rounded-lg">7,483 sold</span>
@@ -37,7 +37,7 @@ export default function ProductInfo() {
       <div>
         <h3 className="font-bold mb-2">Description</h3>
         <p className="text-muted-foreground leading-relaxed">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          {product.description}
         </p>
       </div>
 
@@ -95,7 +95,7 @@ export default function ProductInfo() {
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-xs text-muted-foreground">Total price</span>
-          <span className="text-2xl font-bold">$750.00</span>
+          <span className="text-2xl font-bold">${(parseFloat(product.price) * quantity).toFixed(2)}</span>
         </div>
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-2">

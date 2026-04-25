@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product, ProductImage, Cart, CartItem, Order, OrderItem, Review
+from .models import Category, Product, ProductImage, Cart, CartItem, Order, OrderItem, Review, Wishlist, NewsletterSubscriber, Coupon, SpecialOffer
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -53,4 +53,20 @@ class CouponSerializer(serializers.ModelSerializer):
 class SpecialOfferSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpecialOffer
+        fields = '__all__'
+
+class WishlistSerializer(serializers.ModelSerializer):
+    products = ProductSerializer(many=True, read_only=True)
+    product_ids = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Product.objects.all(), source='products', write_only=True
+    )
+
+    class Meta:
+        model = Wishlist
+        fields = ['id', 'user', 'products', 'product_ids', 'created_at', 'updated_at']
+        read_only_fields = ['user']
+
+class NewsletterSubscriberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NewsletterSubscriber
         fields = '__all__'

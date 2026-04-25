@@ -2,8 +2,9 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Count, Sum
-from .models import Category, Product, Cart, Order, Address, Coupon, SpecialOffer
-from .serializers import CategorySerializer, ProductSerializer, CartSerializer, OrderSerializer, CouponSerializer, SpecialOfferSerializer
+from .models import Category, Product, Cart, Order, Address, Coupon, SpecialOffer, Wishlist, NewsletterSubscriber
+from .serializers import (CategorySerializer, ProductSerializer, CartSerializer, OrderSerializer,
+                          CouponSerializer, SpecialOfferSerializer, WishlistSerializer, NewsletterSubscriberSerializer)
 from core.permissions import IsOwnerOrAdmin, IsAdminUser
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -71,3 +72,50 @@ class OrderViewSet(viewsets.ModelViewSet):
             'total_orders': total_orders,
             'recent_orders': recent_orders
         })
+
+class WishlistViewSet(viewsets.ModelViewSet):
+    serializer_class = WishlistSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Wishlist.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def add_product(self, request):
+        product_id = request.data.get('product_id')
+        if not product_id:
+            return Response({'error': 'product_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        wishlist, created = Wishlist.objects.get_or_create(user=request.user)
+        try:
+            product = Product.objects.get(id=product_id)
+            wishlist.products.add(product)
+            return Response({'status': 'product added to wishlist'})
+        except Product.DoesNotExist:
+            return Response({'error': 'product not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['post'])
+    def remove_product(self, request):
+        product_id = request.data.get('product_id')
+        if not product_id:
+            return Response({'error': 'product_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            wishlist = Wishlist.objects.get(user=request.user)
+            product = Product.objects.get(id=product_id)
+            wishlist.products.remove(product)
+            return Response({'status': 'product removed from wishlist'})
+        except (Wishlist.DoesNotExist, Product.DoesNotExist):
+            return Response({'error': 'wishlist or product not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class NewsletterSubscriberViewSet(viewsets.ModelViewSet):
+    queryset = NewsletterSubscriber.objects.all()
+    serializer_class = NewsletterSubscriberSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return [permissions.AllowAny()]

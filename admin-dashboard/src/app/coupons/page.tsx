@@ -12,24 +12,29 @@ export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchCoupons() {
-      try {
-        const data = await apiFetch('/store/coupons/')
-        setCoupons(data)
-      } catch (err) {
-        console.error("Failed to fetch coupons", err)
-      } finally {
-        setLoading(false)
-      }
+  const fetchCoupons = async () => {
+    try {
+      const data = await api.orders.coupons.list()
+      setCoupons(data)
+    } catch (err) {
+      console.error("Failed to fetch coupons", err)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     fetchCoupons()
   }, [])
 
   const deleteCoupon = async (id: number) => {
     if (confirm("Delete this coupon?")) {
-        await apiFetch(`/store/coupons/${id}/`, { method: 'DELETE' })
-        setCoupons(coupons.filter(c => c.id !== id))
+        try {
+            await api.orders.coupons.deleteCoupon(id)
+            setCoupons(coupons.filter(c => c.id !== id))
+        } catch (err) {
+            console.error("Failed to delete coupon", err)
+        }
     }
   }
 
@@ -80,19 +85,4 @@ export default function AdminCouponsPage() {
       )}
     </div>
   )
-}
-
-async function apiFetch(endpoint: string, options: any = {}) {
-    const token = localStorage.getItem('access_token')
-    const response = await fetch(`http://localhost:8000/api${endpoint}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            ...options.headers
-        }
-    })
-    if (response.status === 204) return null
-    if (!response.ok) throw new Error('API request failed')
-    return response.json().catch(() => ({}))
 }

@@ -19,7 +19,7 @@ class IsOwnerOrAdmin(permissions.BasePermission):
     Allow owners or admins to access.
     """
     def has_object_permission(self, request, view, obj):
-        if request.user.is_staff or request.user.role == 'admin':
+        if request.user.is_staff or getattr(request.user, 'role', '') == 'admin':
             return True
 
         if hasattr(obj, 'user'):
@@ -35,4 +35,4 @@ class IsAdminUser(permissions.BasePermission):
     Strict admin check using custom role.
     """
     def has_permission(self, request, view):
-        return request.user.is_authenticated and (request.user.is_staff or request.user.role == 'admin')
+        return request.user.is_authenticated and (request.user.is_staff or getattr(request.user, 'role', '') == 'admin')

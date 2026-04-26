@@ -29,13 +29,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return
     }
     try {
-      const carts = await api.store.cart()
-      if (carts.length > 0) {
-        setCart(carts[0])
-      } else {
-        // Handle no cart case if needed
-        setCart(null)
-      }
+      const cartData = await api.carts.get()
+      setCart(cartData)
     } catch (err) {
       console.error("Failed to fetch cart", err)
     } finally {
@@ -48,30 +43,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [refreshCart])
 
   const addItem = async (productId: number, quantity: number, size?: string, color?: string) => {
-    // This logic depends on your backend implementation (POST /store/cart/items/ etc)
-    // For now assuming a simplified version
-    await apiFetch('/store/cart/', {
-        method: 'POST',
-        body: JSON.stringify({ product: productId, quantity, size, color })
-    })
+    await api.carts.addItem({ product: productId, quantity, size, color })
     await refreshCart()
   }
 
   const updateItem = async (itemId: number, quantity: number) => {
-    await apiFetch(`/store/cart/${itemId}/`, {
-        method: 'PATCH',
-        body: JSON.stringify({ quantity })
-    })
+    await api.carts.updateItem(itemId, { quantity })
     await refreshCart()
   }
 
   const removeItem = async (itemId: number) => {
-    await apiFetch(`/store/cart/${itemId}/`, { method: 'DELETE' })
+    await api.carts.removeItem(itemId)
     await refreshCart()
   }
 
   const subtotal = cart?.items?.reduce((acc: number, item: any) => acc + (parseFloat(item.price_snapshot) * item.quantity), 0) || 0
-  const total = subtotal // Add shipping/tax logic if needed
+  const total = subtotal
 
   return (
     <CartContext.Provider value={{ cart, loading, addItem, updateItem, removeItem, refreshCart, subtotal, total }}>
@@ -86,19 +73,4 @@ export function useCart() {
     throw new Error('useCart must be used within a CartProvider')
   }
   return context
-}
-
-// Re-using apiFetch internally for quick implementation
-async function apiFetch(endpoint: string, options: any = {}) {
-    const token = localStorage.getItem('access_token')
-    const response = await fetch(`http://localhost:8000/api${endpoint}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            ...options.headers
-        }
-    })
-    if (!response.ok) throw new Error('API request failed')
-    return response.json().catch(() => ({}))
 }

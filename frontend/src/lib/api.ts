@@ -23,7 +23,6 @@ export async function apiFetch(endpoint: string, options: RequestOptions = {}) {
   })
 
   if (response.status === 401 && typeof window !== 'undefined') {
-    // Optional: handle refresh token logic here
     localStorage.removeItem('access_token')
     window.location.href = '/login'
   }
@@ -38,28 +37,68 @@ export async function apiFetch(endpoint: string, options: RequestOptions = {}) {
 
 export const api = {
   auth: {
-    login: (credentials: any) => apiFetch('/auth/login/', { method: 'POST', body: JSON.stringify(credentials), auth: false }),
-    register: (data: any) => apiFetch('/auth/register/', { method: 'POST', body: JSON.stringify(data), auth: false }),
-    me: () => apiFetch('/auth/me/'),
+    login: (credentials: any) => apiFetch('/accounts/login/', { method: 'POST', body: JSON.stringify(credentials), auth: false }),
+    register: (data: any) => apiFetch('/accounts/register/', { method: 'POST', body: JSON.stringify(data), auth: false }),
+    me: () => apiFetch('/accounts/me/'),
   },
-  store: {
-    products: (params?: string) => apiFetch(`/store/products/${params ? `?${params}` : ''}`, { auth: false }),
-    product: (slug: string) => apiFetch(`/store/products/${slug}/`, { auth: false }),
-    categories: () => apiFetch('/store/categories/', { auth: false }),
-    cart: () => apiFetch('/store/cart/'),
-    orders: () => apiFetch('/store/orders/'),
+  accounts: {
+    addresses: {
+        list: () => apiFetch('/accounts/addresses/'),
+        create: (data: any) => apiFetch('/accounts/addresses/', { method: 'POST', body: JSON.stringify(data) }),
+    },
+    wallet: {
+        get: () => apiFetch('/accounts/wallet/'),
+    },
+    support: {
+        list: () => apiFetch('/accounts/support/'),
+        create: (data: any) => apiFetch('/accounts/support/', { method: 'POST', body: JSON.stringify(data) }),
+        reply: (ticketId: number, message: string) => apiFetch(`/accounts/support/${ticketId}/reply/`, { method: 'POST', body: JSON.stringify({ message }) }),
+    }
+  },
+  products: {
+    list: (params?: string) => apiFetch(`/products/${params ? `?${params}` : ''}`, { auth: false }),
+    detail: (slug: string) => apiFetch(`/products/${slug}/`, { auth: false }),
+    categories: () => apiFetch('/categories/', { auth: false }),
+  },
+  carts: {
+    get: () => apiFetch('/carts/current/'),
+    addItem: (data: any) => apiFetch('/carts/current/', { method: 'POST', body: JSON.stringify(data) }),
+    updateItem: (id: number, data: any) => apiFetch(`/carts/items/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    removeItem: (id: number) => apiFetch(`/carts/items/${id}/`, { method: 'DELETE' }),
+  },
+  orders: {
+    list: () => apiFetch('/orders/'),
+    create: (data: any) => apiFetch('/orders/', { method: 'POST', body: JSON.stringify(data) }),
+    wishlist: {
+        get: () => apiFetch('/orders/wishlist/'),
+        add: (productId: number) => apiFetch('/orders/wishlist/add_product/', { method: 'POST', body: JSON.stringify({ product_id: productId }) }),
+        remove: (productId: number) => apiFetch('/orders/wishlist/remove_product/', { method: 'POST', body: JSON.stringify({ product_id: productId }) }),
+    },
+    coupons: {
+        list: () => apiFetch('/orders/coupons/'),
+        validate: (code: string) => apiFetch(`/orders/coupons/${code}/validate/`),
+        listCoupons: () => apiFetch('/orders/coupons/'), // Alias for consistency in dashboard
+        deleteCoupon: (id: number) => apiFetch(`/orders/coupons/${id}/`, { method: 'DELETE' }),
+    }
+  },
+  shipping: {
+    methods: () => apiFetch('/shipping/methods/'),
+  },
+  reviews: {
+    list: (productId: number) => apiFetch(`/reviews/?product=${productId}`, { auth: false }),
+    create: (data: any) => apiFetch('/reviews/', { method: 'POST', body: JSON.stringify(data) }),
   },
   admin: {
-    stats: () => apiFetch('/store/orders/stats/'),
+    stats: () => apiFetch('/dashboard/stats/'),
     products: {
-      list: () => apiFetch('/store/products/'),
-      create: (data: any) => apiFetch('/store/products/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: number, data: any) => apiFetch(`/store/products/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
-      delete: (id: number) => apiFetch(`/store/products/${id}/`, { method: 'DELETE' }),
+      list: () => apiFetch('/products/'),
+      create: (data: any) => apiFetch('/products/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: number, data: any) => apiFetch(`/products/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: number) => apiFetch(`/products/${id}/`, { method: 'DELETE' }),
     },
     users: {
-      list: () => apiFetch('/auth/management/'),
-      toggleActive: (id: number) => apiFetch(`/auth/management/${id}/toggle_active/`, { method: 'POST' }),
+      list: () => apiFetch('/accounts/management/'),
+      toggleActive: (id: number) => apiFetch(`/accounts/management/${id}/toggle_active/`, { method: 'POST' }),
     }
   }
 }

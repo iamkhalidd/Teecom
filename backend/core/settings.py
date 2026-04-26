@@ -46,11 +46,15 @@ INSTALLED_APPS = [
     "cloudinary",
     "rest_framework",
     "corsheaders",
-    "users",
-    "store",
-    "wallet",
-    "support",
-    "notifications",
+    "accounts",
+    "products",
+    "categories",
+    "carts",
+    "orders",
+    "payments",
+    "shipping",
+    "reviews",
+    "dashboard",
     "django_filters",
 ]
 
@@ -154,7 +158,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

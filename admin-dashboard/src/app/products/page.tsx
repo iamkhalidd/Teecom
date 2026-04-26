@@ -21,7 +21,7 @@ export default function AdminProductsPage() {
     try {
       const [productsData, categoriesData] = await Promise.all([
         api.admin.products.list(),
-        api.store.categories()
+        api.products.categories()
       ])
       setProducts(productsData)
       setCategories(categoriesData)

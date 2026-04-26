@@ -12,7 +12,7 @@ export default function PopularProducts() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const data = await api.store.products("limit=8&ordering=-created_at")
+        const data = await api.products.list("limit=8&ordering=-created_at")
         setProducts(data)
       } catch (err) {
         console.error("Failed to fetch popular products", err)

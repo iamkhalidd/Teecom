@@ -13,7 +13,7 @@ export default function ProductsPage() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const data = await api.store.products()
+        const data = await api.products.list()
         setProducts(data)
       } catch (err) {
         console.error("Failed to fetch products", err)

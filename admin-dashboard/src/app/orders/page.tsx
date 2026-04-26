@@ -15,7 +15,7 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const data = await api.store.orders()
+        const data = await api.orders.list()
         setOrders(data)
       } catch (err) {
         console.error("Failed to fetch orders", err)

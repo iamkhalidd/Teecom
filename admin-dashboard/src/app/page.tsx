@@ -54,15 +54,15 @@ export default function AdminDashboard() {
     },
     {
       title: "Active Customers",
-      value: "1,203", // Placeholder for now
-      change: "-3.1%",
-      trend: "down",
+      value: stats?.total_customers?.toLocaleString() || 0,
+      change: `+${stats?.new_customers_30d || 0}`,
+      trend: "up",
       icon: Users,
     },
     {
-      title: "Products",
-      value: "456", // Placeholder for now
-      change: "+4.3%",
+      title: "Recent Orders (30d)",
+      value: stats?.recent_orders_30d?.toLocaleString() || 0,
+      change: "+4.3%", // Placeholder trend
       trend: "up",
       icon: Package,
     },

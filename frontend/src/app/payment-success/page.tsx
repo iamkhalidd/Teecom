@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense } from "react"
 import Link from "next/link"
 import { CheckCircle2, ShoppingBag, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
 
@@ -62,5 +62,13 @@ export default function PaymentSuccessPage() {
         </Link>
       </div>
     </div>
+  )
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto flex min-h-[80vh] items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>}>
+      <PaymentSuccessContent />
+    </Suspense>
   )
 }

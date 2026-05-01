@@ -12,8 +12,8 @@ export default function ProductInfo({ product }: { product: any }) {
   const [loading, setLoading] = useState(false)
 
   // Derive sizes and colors from product variants
-  const sizes = [...new Set(product.variants?.map((v: any) => v.size).filter(Boolean) || [])]
-  const colors = [...new Set(product.variants?.map((v: any) => v.color).filter(Boolean) || [])]
+  const sizes = [...new Set(product.variants?.map((v: any) => v.size).filter(Boolean) || [])] as string[]
+  const colors = [...new Set(product.variants?.map((v: any) => v.color).filter(Boolean) || [])] as string[]
 
   const [selectedSize, setSelectedSize] = useState<string>(sizes[0] || "")
   const [selectedColor, setSelectedColor] = useState<string>(colors[0] || "")

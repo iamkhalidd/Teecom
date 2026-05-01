@@ -4,6 +4,32 @@ interface RequestOptions extends RequestInit {
   auth?: boolean
 }
 
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null
+  if (!refreshToken) return null
+
+  try {
+    const response = await fetch(`${API_URL}/accounts/token/refresh/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh: refreshToken }),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      localStorage.setItem('access_token', data.access)
+      return data.access
+    } else {
+      // Refresh token expired — full logout
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      return null
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function apiFetch(endpoint: string, options: RequestOptions = {}) {
   const { auth = true, ...fetchOptions } = options
 
@@ -17,20 +43,35 @@ export async function apiFetch(endpoint: string, options: RequestOptions = {}) {
     }
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  let response = await fetch(`${API_URL}${endpoint}`, {
     ...fetchOptions,
     headers,
   })
 
-  if (response.status === 401 && typeof window !== 'undefined') {
-    localStorage.removeItem('access_token')
-    window.location.href = '/login'
+  // If 401 and we have a refresh token, try silent refresh
+  if (response.status === 401 && auth && typeof window !== 'undefined') {
+    const newToken = await refreshAccessToken()
+    if (newToken) {
+      headers.set('Authorization', `Bearer ${newToken}`)
+      response = await fetch(`${API_URL}${endpoint}`, {
+        ...fetchOptions,
+        headers,
+      })
+    } else {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      window.location.href = '/account'
+      throw new Error('Session expired')
+    }
   }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'An error occurred' }))
-    throw new Error(error.message || response.statusText)
+    throw new Error(error.detail || error.message || response.statusText)
   }
+
+  // Handle 204 No Content (e.g. DELETE)
+  if (response.status === 204) return null
 
   return response.json()
 }
@@ -46,9 +87,6 @@ export const api = {
         list: () => apiFetch('/accounts/addresses/'),
         create: (data: any) => apiFetch('/accounts/addresses/', { method: 'POST', body: JSON.stringify(data) }),
     },
-    wallet: {
-        get: () => apiFetch('/accounts/wallet/'),
-    },
     support: {
         list: () => apiFetch('/accounts/support/'),
         create: (data: any) => apiFetch('/accounts/support/', { method: 'POST', body: JSON.stringify(data) }),
@@ -59,6 +97,7 @@ export const api = {
     list: (params?: string) => apiFetch(`/products/${params ? `?${params}` : ''}`, { auth: false }),
     detail: (slug: string) => apiFetch(`/products/${slug}/`, { auth: false }),
     categories: () => apiFetch('/categories/', { auth: false }),
+    offers: () => apiFetch('/products/offers/', { auth: false }),
   },
   carts: {
     get: () => apiFetch('/carts/current/'),
@@ -77,12 +116,11 @@ export const api = {
     coupons: {
         list: () => apiFetch('/orders/coupons/'),
         validate: (code: string) => apiFetch(`/orders/coupons/${code}/validate/`),
-        listCoupons: () => apiFetch('/orders/coupons/'), // Alias for consistency in dashboard
         deleteCoupon: (id: number) => apiFetch(`/orders/coupons/${id}/`, { method: 'DELETE' }),
     }
   },
   shipping: {
-    methods: () => apiFetch('/shipping/methods/'),
+    methods: () => apiFetch('/shipping/methods/', { auth: false }),
   },
   reviews: {
     list: (productId: number) => apiFetch(`/reviews/?product=${productId}`, { auth: false }),

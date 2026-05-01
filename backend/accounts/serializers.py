@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from .models import Address, Wallet, WalletTransaction, SupportTicket, SupportMessage
 
 User = get_user_model()
@@ -7,17 +8,24 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'full_name', 'phone', 'role', 'avatar_url', 'is_verified')
-        read_only_fields = ('role', 'is_verified')
+        fields = ('id', 'email', 'full_name', 'phone', 'role', 'avatar_url', 'is_verified', 'is_active')
+        read_only_fields = ('role', 'is_verified', 'is_active')
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    password_confirm = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'full_name')
+        fields = ('email', 'username', 'password', 'password_confirm', 'full_name')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({"password_confirm": "Passwords do not match."})
+        return attrs
 
     def create(self, validated_data):
+        validated_data.pop('password_confirm')
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -45,6 +53,8 @@ class WalletSerializer(serializers.ModelSerializer):
         read_only_fields = ('user',)
 
 class SupportMessageSerializer(serializers.ModelSerializer):
+    sender_role = serializers.ReadOnlyField(source='sender.role')
+
     class Meta:
         model = SupportMessage
         fields = '__all__'

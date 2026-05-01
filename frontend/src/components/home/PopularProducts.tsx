@@ -7,20 +7,27 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function PopularProducts() {
   const [products, setProducts] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [activeCategory, setActiveCategory] = useState("all")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchData() {
       try {
-        const data = await api.products.list("limit=8&ordering=-created_at")
-        setProducts(data)
+        const [productsData, categoriesData] = await Promise.all([
+          api.products.list("ordering=-created_at"),
+          api.products.categories()
+        ])
+        setProducts(Array.isArray(productsData) ? productsData : productsData.results || [])
+        const cats = Array.isArray(categoriesData) ? categoriesData : categoriesData.results || []
+        setCategories(cats)
       } catch (err) {
         console.error("Failed to fetch popular products", err)
       } finally {
         setLoading(false)
       }
     }
-    fetchProducts()
+    fetchData()
   }, [])
 
   if (loading) {
@@ -36,24 +43,40 @@ export default function PopularProducts() {
     )
   }
 
+  // Filter products by selected category
+  const filteredProducts = activeCategory === "all"
+    ? products
+    : products.filter(p => p.category === parseInt(activeCategory))
+
+  // Build category tabs from real data
+  const categoryTabs = [
+    { id: "all", name: "All" },
+    ...categories.slice(0, 4).map(c => ({ id: String(c.id), name: c.name }))
+  ]
+
   return (
     <section className="container mx-auto px-4 py-12">
       <div className="mb-8 flex items-center justify-between">
         <h2 className="text-2xl font-bold">Most Popular</h2>
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {["All", "Clothes", "Shoes", "Bags", "Electronics"].map((category) => (
+          {categoryTabs.map((category) => (
             <button
-              key={category}
-              className="whitespace-nowrap rounded-full bg-secondary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
+              key={category.id}
+              onClick={() => setActiveCategory(category.id)}
+              className={`whitespace-nowrap rounded-full px-6 py-2 text-sm font-semibold transition-colors ${
+                activeCategory === category.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary hover:bg-primary hover:text-primary-foreground"
+              }`}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
-        {products.map((product) => (
+        {filteredProducts.slice(0, 8).map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

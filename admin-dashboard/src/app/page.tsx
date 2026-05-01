@@ -6,8 +6,6 @@ import {
   Package,
   ShoppingBag,
   DollarSign,
-  TrendingUp,
-  TrendingDown,
   ArrowUpRight
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,29 +39,22 @@ export default function AdminDashboard() {
     {
       title: "Total Revenue",
       value: `$${stats?.total_revenue?.toLocaleString() || 0}`,
-      change: "+12.5%", // Demo change
-      trend: "up",
       icon: DollarSign,
     },
     {
       title: "Total Orders",
       value: stats?.total_orders || 0,
-      change: "+18.2%",
-      trend: "up",
       icon: ShoppingBag,
     },
     {
       title: "Active Customers",
       value: stats?.total_customers?.toLocaleString() || 0,
-      change: `+${stats?.new_customers_30d || 0}`,
-      trend: "up",
+      subtitle: `${stats?.new_customers_30d || 0} new this month`,
       icon: Users,
     },
     {
-      title: "Recent Orders (30d)",
+      title: "Orders (30d)",
       value: stats?.recent_orders_30d?.toLocaleString() || 0,
-      change: "+4.3%", // Placeholder trend
-      trend: "up",
       icon: Package,
     },
   ]
@@ -72,7 +63,7 @@ export default function AdminDashboard() {
     <div className="p-8 space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back, Admin. Here's what's happening today.</p>
+        <p className="text-muted-foreground">Welcome back, Admin. Here's what's happening.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -83,16 +74,13 @@ export default function AdminDashboard() {
                 <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center">
                   <stat.icon className="h-6 w-6" />
                 </div>
-                <div className={`flex items-center gap-1 text-sm font-medium ${
-                  stat.trend === "up" ? "text-success" : "text-destructive"
-                }`}>
-                  {stat.change}
-                  {stat.trend === "up" ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                </div>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">{stat.title}</p>
                 <h3 className="text-2xl font-bold">{stat.value}</h3>
+                {stat.subtitle && (
+                  <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -103,16 +91,21 @@ export default function AdminDashboard() {
         <Card className="border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg font-bold">Recent Orders</CardTitle>
-            <Button variant="ghost" size="sm" className="gap-1">
+            <Button variant="ghost" size="sm" className="gap-1" onClick={() => window.location.href='/orders'}>
               View All <ArrowUpRight className="h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
+              {stats?.recent_orders?.length === 0 && (
+                <p className="text-muted-foreground text-sm">No recent orders.</p>
+              )}
               {stats?.recent_orders?.map((order: any) => (
                 <div key={order.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-muted" />
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <ShoppingBag className="h-5 w-5 text-muted-foreground" />
+                    </div>
                     <div>
                       <p className="font-semibold text-sm">Order #{order.order_number}</p>
                       <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
@@ -120,7 +113,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-sm">${order.total}</p>
-                    <p className={`text-[10px] uppercase font-bold ${order.status === 'paid' ? 'text-success' : 'text-warning'}`}>
+                    <p className={`text-[10px] uppercase font-bold ${order.status === 'paid' || order.status === 'delivered' ? 'text-success' : 'text-warning'}`}>
                       {order.status}
                     </p>
                   </div>
@@ -132,27 +125,25 @@ export default function AdminDashboard() {
 
         <Card className="border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-bold">Quick Actions</CardTitle>
+            <CardTitle className="text-lg font-bold">Top Products</CardTitle>
           </CardHeader>
           <CardContent>
-             <div className="grid grid-cols-2 gap-4">
-                <Button className="rounded-2xl h-20 flex flex-col gap-1" variant="outline" onClick={() => window.location.href='/admin/products'}>
-                   <Package className="h-5 w-5" />
-                   <span>Add Product</span>
-                </Button>
-                <Button className="rounded-2xl h-20 flex flex-col gap-1" variant="outline" onClick={() => window.location.href='/admin/orders'}>
-                   <ShoppingBag className="h-5 w-5" />
-                   <span>View Orders</span>
-                </Button>
-                <Button className="rounded-2xl h-20 flex flex-col gap-1" variant="outline" onClick={() => window.location.href='/admin/customers'}>
-                   <Users className="h-5 w-5" />
-                   <span>Manage Users</span>
-                </Button>
-                <Button className="rounded-2xl h-20 flex flex-col gap-1" variant="outline">
-                   <DollarSign className="h-5 w-5" />
-                   <span>Payouts</span>
-                </Button>
-             </div>
+            <div className="space-y-4">
+              {stats?.top_products?.length === 0 && (
+                <p className="text-muted-foreground text-sm">No product data yet.</p>
+              )}
+              {stats?.top_products?.map((product: any) => (
+                <div key={product.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <Package className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <span className="font-semibold text-sm">{product.name}</span>
+                  </div>
+                  <span className="text-sm font-bold">{product.sales} sales</span>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>

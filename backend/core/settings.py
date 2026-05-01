@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 
@@ -24,7 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-&_)#^e2l9+zzak*(52)+q%v3qd+)n0#d60@+9n)c#r0r7hf()z')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if os.getenv('DEBUG', 'True') == 'True':
+        SECRET_KEY = 'django-insecure-dev-only-key-change-in-production'
+    else:
+        raise ValueError("DJANGO_SECRET_KEY must be set in production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', os.getenv('DJANGO_DEBUG', 'True')) == 'True'
@@ -127,6 +133,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -179,6 +188,17 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
+}
+
+# JWT Configuration
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 # Email Settings
@@ -207,3 +227,4 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

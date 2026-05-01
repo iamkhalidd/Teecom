@@ -1,9 +1,15 @@
+"use client"
+
 import Link from "next/link"
 import { Search, Heart, ShoppingCart, User, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useCart } from "@/context/CartContext"
 
 export default function Header() {
+  const { cart } = useCart()
+  const itemCount = cart?.items?.length || 0
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -45,9 +51,11 @@ export default function Header() {
           <Link href="/cart">
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-bold">
-                2
-              </span>
+              {itemCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-bold">
+                  {itemCount > 9 ? "9+" : itemCount}
+                </span>
+              )}
             </Button>
           </Link>
           <Link href="/account">

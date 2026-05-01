@@ -25,7 +25,7 @@ class DashboardStatsView(APIView):
 
         # Top Products
         top_products = Product.objects.annotate(
-            order_count=Count('orderitem_set')
+            order_count=Count('orderitem')
         ).order_by('-order_count')[:5]
 
         top_products_data = [{

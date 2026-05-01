@@ -4,31 +4,54 @@ import { useState } from "react"
 import { Star, Minus, Plus, Heart, Truck, RefreshCcw, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/context/CartContext"
 
 export default function ProductInfo({ product }: { product: any }) {
+  const { addItem } = useCart()
   const [quantity, setQuantity] = useState(1)
-  const [selectedSize, setSelectedSize] = useState("40")
-  const [selectedColor, setSelectedColor] = useState("brown")
+  const [loading, setLoading] = useState(false)
 
-  const sizes = ["38", "39", "40", "41", "42"]
-  const colors = [
-    { name: "brown", class: "bg-[#8B4513]" },
-    { name: "black", class: "bg-black" },
-    { name: "grey", class: "bg-grey-500" },
-    { name: "white", class: "bg-white border" },
-  ]
+  // Derive sizes and colors from product variants
+  const sizes = [...new Set(product.variants?.map((v: any) => v.size).filter(Boolean) || [])]
+  const colors = [...new Set(product.variants?.map((v: any) => v.color).filter(Boolean) || [])]
+
+  const [selectedSize, setSelectedSize] = useState<string>(sizes[0] || "")
+  const [selectedColor, setSelectedColor] = useState<string>(colors[0] || "")
+
+  const currentPrice = product.discount_price || product.price
+  const reviewCount = product.reviews?.length || 0
+
+  const handleAddToCart = async () => {
+    setLoading(true)
+    try {
+      await addItem(product.id, quantity, selectedSize || undefined, selectedColor || undefined)
+    } catch (err) {
+      console.error("Failed to add to cart", err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold">{product.name}</h1>
         <div className="mt-2 flex items-center gap-4">
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-primary text-primary" />
-            <span className="font-semibold">{product.rating_average || "4.7"}</span>
-            <span className="text-sm text-muted-foreground">(5,387 reviews)</span>
-          </div>
-          <span className="text-sm font-semibold px-2 py-1 bg-secondary rounded-lg">7,483 sold</span>
+          {product.rating_average > 0 && (
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-primary text-primary" />
+              <span className="font-semibold">{product.rating_average}</span>
+              {reviewCount > 0 && (
+                <span className="text-sm text-muted-foreground">({reviewCount} reviews)</span>
+              )}
+            </div>
+          )}
+          <span className={cn(
+            "text-sm font-semibold px-2 py-1 rounded-lg",
+            product.stock_quantity > 0 ? "bg-secondary" : "bg-destructive/10 text-destructive"
+          )}>
+            {product.stock_quantity > 0 ? `${product.stock_quantity} in stock` : "Out of stock"}
+          </span>
         </div>
       </div>
 
@@ -41,41 +64,48 @@ export default function ProductInfo({ product }: { product: any }) {
         </p>
       </div>
 
-      <div className="flex gap-12">
-        <div>
-          <h3 className="font-bold mb-3">Size</h3>
-          <div className="flex gap-2">
-            {sizes.map((size) => (
-              <button
-                key={size}
-                onClick={() => setSelectedSize(size)}
-                className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition-colors",
-                  selectedSize === size ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"
-                )}
-              >
-                {size}
-              </button>
-            ))}
-          </div>
+      {(sizes.length > 0 || colors.length > 0) && (
+        <div className="flex gap-12">
+          {sizes.length > 0 && (
+            <div>
+              <h3 className="font-bold mb-3">Size</h3>
+              <div className="flex gap-2">
+                {sizes.map((size: string) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition-colors",
+                      selectedSize === size ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"
+                    )}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {colors.length > 0 && (
+            <div>
+              <h3 className="font-bold mb-3">Color</h3>
+              <div className="flex gap-2">
+                {colors.map((color: string) => (
+                  <button
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
+                    className={cn(
+                      "h-8 px-3 rounded-full border-2 text-xs font-semibold transition-all",
+                      selectedColor === color ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"
+                    )}
+                  >
+                    {color}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        <div>
-          <h3 className="font-bold mb-3">Color</h3>
-          <div className="flex gap-2">
-            {colors.map((color) => (
-              <button
-                key={color.name}
-                onClick={() => setSelectedColor(color.name)}
-                className={cn(
-                  "h-8 w-8 rounded-full border-2 transition-all",
-                  color.class,
-                  selectedColor === color.name ? "ring-2 ring-primary ring-offset-2" : "border-transparent"
-                )}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      )}
 
       <div className="flex items-center gap-6">
         <h3 className="font-bold">Quantity</h3>
@@ -84,7 +114,7 @@ export default function ProductInfo({ product }: { product: any }) {
             <Minus className="h-4 w-4" />
           </button>
           <span className="w-4 text-center font-bold">{quantity}</span>
-          <button onClick={() => setQuantity(quantity + 1)}>
+          <button onClick={() => setQuantity(Math.min(product.stock_quantity || 99, quantity + 1))}>
             <Plus className="h-4 w-4" />
           </button>
         </div>
@@ -95,14 +125,18 @@ export default function ProductInfo({ product }: { product: any }) {
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-xs text-muted-foreground">Total price</span>
-          <span className="text-2xl font-bold">${(parseFloat(product.price) * quantity).toFixed(2)}</span>
+          <span className="text-2xl font-bold">${(parseFloat(currentPrice) * quantity).toFixed(2)}</span>
         </div>
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-2">
             <Heart className="h-5 w-5" />
           </Button>
-          <Button className="h-12 rounded-full px-8 font-bold gap-2">
-            Add to Cart
+          <Button
+            className="h-12 rounded-full px-8 font-bold gap-2"
+            onClick={handleAddToCart}
+            disabled={loading || product.stock_quantity <= 0}
+          >
+            {loading ? "Adding..." : "Add to Cart"}
           </Button>
         </div>
       </div>
@@ -117,7 +151,7 @@ export default function ProductInfo({ product }: { product: any }) {
           <div>
             <h4 className="font-bold text-sm">Delivery Information</h4>
             <p className="text-xs text-muted-foreground mt-1">
-              Estimated delivery: Dec 20 - Dec 22. Free shipping on orders over $500.
+              Standard delivery available. Free shipping on orders over $500.
             </p>
           </div>
         </div>

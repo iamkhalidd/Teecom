@@ -2,6 +2,7 @@
 
 import { AuthProvider } from "@/context/AuthContext"
 import { CartProvider } from "@/context/CartContext"
+import { NotificationProvider } from "@/context/NotificationContext"
 import { Inter } from "next/font/google"
 import "./globals.css"
 
@@ -17,7 +18,9 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans`}>
         <AuthProvider>
           <CartProvider>
-            {children}
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
           </CartProvider>
         </AuthProvider>
       </body>

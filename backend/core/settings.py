@@ -29,6 +29,13 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 if not SECRET_KEY:
     if os.getenv('DEBUG', 'True') == 'True':
         SECRET_KEY = 'django-insecure-dev-only-key-change-in-production'
+        # In development, warn about using default key
+        import warnings
+        warnings.warn(
+            'Using default SECRET_KEY for development. '
+            'Set DJANGO_SECRET_KEY environment variable for production.',
+            UserWarning
+        )
     else:
         raise ValueError("DJANGO_SECRET_KEY must be set in production")
 
@@ -61,6 +68,7 @@ INSTALLED_APPS = [
     "shipping",
     "reviews",
     "dashboard",
+    "notifications",
     "django_filters",
 ]
 

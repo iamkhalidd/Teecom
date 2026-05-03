@@ -12,4 +12,5 @@ urlpatterns = [
     path("api/shipping/", include('shipping.urls')),
     path("api/reviews/", include('reviews.urls')),
     path("api/dashboard/", include('dashboard.urls')),
+    path("api/notifications/", include('notifications.urls')),
 ]

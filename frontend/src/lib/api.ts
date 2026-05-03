@@ -84,13 +84,13 @@ export const api = {
   },
   accounts: {
     addresses: {
-        list: () => apiFetch('/accounts/addresses/'),
-        create: (data: any) => apiFetch('/accounts/addresses/', { method: 'POST', body: JSON.stringify(data) }),
+      list: () => apiFetch('/accounts/addresses/'),
+      create: (data: any) => apiFetch('/accounts/addresses/', { method: 'POST', body: JSON.stringify(data) }),
     },
     support: {
-        list: () => apiFetch('/accounts/support/'),
-        create: (data: any) => apiFetch('/accounts/support/', { method: 'POST', body: JSON.stringify(data) }),
-        reply: (ticketId: number, message: string) => apiFetch(`/accounts/support/${ticketId}/reply/`, { method: 'POST', body: JSON.stringify({ message }) }),
+      list: () => apiFetch('/accounts/support/'),
+      create: (data: any) => apiFetch('/accounts/support/', { method: 'POST', body: JSON.stringify(data) }),
+      reply: (ticketId: number, message: string) => apiFetch(`/accounts/support/${ticketId}/reply/`, { method: 'POST', body: JSON.stringify({ message }) }),
     }
   },
   products: {
@@ -109,14 +109,14 @@ export const api = {
     list: () => apiFetch('/orders/'),
     create: (data: any) => apiFetch('/orders/', { method: 'POST', body: JSON.stringify(data) }),
     wishlist: {
-        get: () => apiFetch('/orders/wishlist/'),
-        add: (productId: number) => apiFetch('/orders/wishlist/add_product/', { method: 'POST', body: JSON.stringify({ product_id: productId }) }),
-        remove: (productId: number) => apiFetch('/orders/wishlist/remove_product/', { method: 'POST', body: JSON.stringify({ product_id: productId }) }),
+      get: () => apiFetch('/orders/wishlist/'),
+      add: (productId: number) => apiFetch('/orders/wishlist/add_product/', { method: 'POST', body: JSON.stringify({ product_id: productId }) }),
+      remove: (productId: number) => apiFetch('/orders/wishlist/remove_product/', { method: 'POST', body: JSON.stringify({ product_id: productId }) }),
     },
     coupons: {
-        list: () => apiFetch('/orders/coupons/'),
-        validate: (code: string) => apiFetch(`/orders/coupons/${code}/validate/`),
-        deleteCoupon: (id: number) => apiFetch(`/orders/coupons/${id}/`, { method: 'DELETE' }),
+      list: () => apiFetch('/orders/coupons/'),
+      validate: (code: string) => apiFetch(`/orders/coupons/${code}/validate/`),
+      deleteCoupon: (id: number) => apiFetch(`/orders/coupons/${id}/`, { method: 'DELETE' }),
     }
   },
   shipping: {
@@ -137,6 +137,20 @@ export const api = {
     users: {
       list: () => apiFetch('/accounts/management/'),
       toggleActive: (id: number) => apiFetch(`/accounts/management/${id}/toggle_active/`, { method: 'POST' }),
+    }
+  },
+  notifications: {
+    list: (params?: string) => apiFetch(`/notifications/notifications/${params ? `?${params}` : ''}`),
+    unreadCount: () => apiFetch('/notifications/notifications/unread_count/'),
+    markAsRead: (id: number) => apiFetch(`/notifications/notifications/${id}/mark_as_read/`, { method: 'POST' }),
+    markAsUnread: (id: number) => apiFetch(`/notifications/notifications/${id}/mark_as_unread/`, { method: 'POST' }),
+    archive: (id: number) => apiFetch(`/notifications/notifications/${id}/archive/`, { method: 'POST' }),
+    markAllAsRead: () => apiFetch('/notifications/notifications/mark_all_as_read/', { method: 'POST' }),
+    clearRead: () => apiFetch('/notifications/notifications/clear_read/', { method: 'DELETE' }),
+    preferences: {
+      get: () => apiFetch('/notifications/preferences/my_preferences/'),
+      update: (data: any) => apiFetch('/notifications/preferences/my_preferences/', { method: 'PUT' }),
+      partialUpdate: (data: any) => apiFetch('/notifications/preferences/my_preferences/', { method: 'PATCH' }),
     }
   }
 }

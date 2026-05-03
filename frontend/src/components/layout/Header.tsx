@@ -5,6 +5,7 @@ import { Search, Heart, ShoppingCart, User, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useCart } from "@/context/CartContext"
+import NotificationDropdown from "@/components/navigation/NotificationDropdown"
 
 export default function Header() {
   const { cart } = useCart()
@@ -63,6 +64,9 @@ export default function Header() {
               <User className="h-5 w-5" />
             </Button>
           </Link>
+          <div className="hidden sm:flex">
+            <NotificationDropdown />
+          </div>
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-5 w-5" />
           </Button>

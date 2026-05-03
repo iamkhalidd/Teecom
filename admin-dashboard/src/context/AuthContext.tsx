@@ -20,6 +20,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadUser() {
       const token = localStorage.getItem('access_token')
+      if (token === 'demo_token') {
+        setUser({ full_name: 'Demo Admin', email: 'admin@demo.com', role: 'admin' })
+        setLoading(false)
+        return
+      }
       if (token) {
         try {
           const userData = await api.auth.me()
@@ -35,6 +40,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = async (credentials: any) => {
+    // Demo bypass
+    if (credentials.email === 'admin@demo.com' && credentials.password === 'demo') {
+      localStorage.setItem('access_token', 'demo_token')
+      setUser({ full_name: 'Demo Admin', email: 'admin@demo.com', role: 'admin' })
+      return
+    }
+
     const { access, refresh } = await api.auth.login(credentials)
     localStorage.setItem('access_token', access)
     if (refresh) {
@@ -52,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     setUser(null)
-    window.location.href = '/'
+    window.location.href = '/login'
   }
 
   return (

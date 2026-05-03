@@ -1,8 +1,10 @@
 from django.db import models
 from django.conf import settings
+from model_utils.fields import StatusField
+from model_utils import Choices
 
 class Order(models.Model):
-    STATUS_CHOICES = (
+    STATUS_CHOICES = Choices(
         ('pending', 'Pending'),
         ('paid', 'Paid'),
         ('processing', 'Processing'),
@@ -14,7 +16,7 @@ class Order(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     order_number = models.CharField(max_length=50, unique=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = StatusField(choices=STATUS_CHOICES, default='pending')
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

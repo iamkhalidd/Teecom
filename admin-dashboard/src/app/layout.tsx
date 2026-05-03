@@ -1,11 +1,8 @@
 "use client"
 
 import { AuthProvider } from "@/context/AuthContext"
-import { Inter } from "next/font/google"
+import { NotificationProvider } from "@/context/NotificationContext"
 import "./globals.css"
-import AdminLayout from "./AdminLayout"
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
 export default function RootLayout({
   children,
@@ -14,11 +11,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans`}>
+      <body>
         <AuthProvider>
-          <AdminLayout>
+          <NotificationProvider>
             {children}
-          </AdminLayout>
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

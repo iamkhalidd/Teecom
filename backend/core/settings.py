@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "cloudinary_storage",
     "cloudinary",
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "accounts",
     "products",
@@ -70,6 +71,7 @@ INSTALLED_APPS = [
     "dashboard",
     "notifications",
     "django_filters",
+    "seo",
 ]
 
 MIDDLEWARE = [
@@ -205,7 +207,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
+    'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 

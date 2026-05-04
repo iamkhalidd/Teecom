@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   BarChart2,
   Settings,
+  Globe,
   LogOut,
   Ticket,
   ChevronRight,
@@ -24,9 +25,11 @@ const sidebarLinks = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Products", href: "/products", icon: Package },
   { name: "Orders", href: "/orders", icon: ShoppingBag },
-  { name: "Customers": "/customers", icon: Users },
+  { name: "Inventory", href: "/inventory", icon: Package },
+  { name: "SEO", href: "/seo", icon: Globe },
+  { name: "Customers", href: "/customers", icon: Users },
   { name: "Coupons", href: "/coupons", icon: Ticket },
-  { name: "Analytics", href: "/analytics", icon: BarChart2 },
+  { name: "Revenue", href: "/analytics", icon: BarChart2 },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

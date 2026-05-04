@@ -36,11 +36,9 @@ export async function apiFetch(endpoint: string, options: RequestOptions = {}) {
   const headers = new Headers(fetchOptions.headers)
   headers.set('Content-Type', 'application/json')
 
-  if (auth) {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`)
-    }
+  const token = auth && typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
   }
 
   let response = await fetch(`${API_URL}${endpoint}`, {
@@ -112,7 +110,9 @@ export const api = {
   },
   orders: {
     list: () => apiFetch('/orders/'),
+    detail: (id: string) => apiFetch(`/orders/${id}/`),
     create: (data: any) => apiFetch('/orders/', { method: 'POST', body: JSON.stringify(data) }),
+    bulkUpdate: (data: any) => apiFetch('/orders/bulk-update/', { method: 'POST', body: JSON.stringify(data) }),
     wishlist: {
       get: () => apiFetch('/orders/wishlist/'),
       add: (productId: number) => apiFetch('/orders/wishlist/add_product/', { method: 'POST', body: JSON.stringify({ product_id: productId }) }),
@@ -133,16 +133,52 @@ export const api = {
     create: (data: any) => apiFetch('/reviews/', { method: 'POST', body: JSON.stringify(data) }),
   },
   admin: {
-    stats: () => apiFetch('/dashboard/stats/'),
+    stats: (params?: string) => apiFetch(`/dashboard/stats/${params ? `?${params}` : ""}`),
     products: {
       list: () => apiFetch('/products/'),
       create: (data: any) => apiFetch('/products/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: number, data: any) => apiFetch(`/products/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: number) => apiFetch(`/products/${id}/`, { method: 'DELETE' }),
+      bulkUpdate: (data: any) => apiFetch('/products/bulk-update/', { method: 'POST', body: JSON.stringify(data) }),
+      bulkDelete: (data: any) => apiFetch('/products/bulk-delete/', { method: 'POST', body: JSON.stringify(data) }),
+    },
+    shipping: {
+      zones: {
+        list: () => apiFetch('/shipping/zones/'),
+        create: (data: any) => apiFetch('/shipping/zones/', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: number, data: any) => apiFetch(`/shipping/zones/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+        delete: (id: number) => apiFetch(`/shipping/zones/${id}/`, { method: 'DELETE' }),
+      },
+      adminMethods: {
+        create: (data: any) => apiFetch('/shipping/methods/', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: number, data: any) => apiFetch(`/shipping/methods/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+        delete: (id: number) => apiFetch(`/shipping/methods/${id}/`, { method: 'DELETE' }),
+      }
     },
     users: {
       list: () => apiFetch('/accounts/management/'),
       toggleActive: (id: number) => apiFetch(`/accounts/management/${id}/toggle_active/`, { method: 'POST' }),
+      auditLogs: () => apiFetch('/accounts/management/audit-logs/'),
+      setup2FA: () => apiFetch('/accounts/management/setup-2fa/', { method: 'POST' }),
+      verify2FA: (data: any) => apiFetch('/accounts/management/verify-2fa/', { method: 'POST', body: JSON.stringify(data) }),
+      disable2FA: (data: any) => apiFetch('/accounts/management/disable-2fa/', { method: 'POST', body: JSON.stringify(data) }),
+      sessions: () => apiFetch('/accounts/management/sessions/'),
+      revokeSession: (id: number) => apiFetch(`/accounts/management/${id}/revoke-session/`, { method: 'POST' }),
+      logoutOthers: () => apiFetch('/accounts/management/logout-others/', { method: 'POST' }),
+    },
+    inventory: {
+      list: (params?: string) => apiFetch(`/products/inventory/${params ? `?${params}` : ''}`),
+      adjust: (data: any) => apiFetch('/products/inventory/adjust/', { method: 'POST', body: JSON.stringify(data) }),
+      lowStock: () => apiFetch('/products/inventory/low-stock/'),
+    },
+    seo: {
+      getMeta: (model: string, id: number) => apiFetch(`/seo/meta/get_metadata/?model=${model}&object_id=${id}`),
+      updateMeta: (data: any) => apiFetch('/seo/meta/update_metadata/', { method: 'POST', body: JSON.stringify(data) }),
+      redirects: {
+        list: () => apiFetch('/seo/redirects/'),
+        create: (data: any) => apiFetch('/seo/redirects/', { method: 'POST', body: JSON.stringify(data) }),
+        delete: (id: number) => apiFetch(`/seo/redirects/${id}/`, { method: 'DELETE' }),
+      }
     },
     notifications: {
       list: (params?: string) => apiFetch(`/notifications/notifications/${params ? `?${params}` : ''}`),

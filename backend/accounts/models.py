@@ -16,6 +16,8 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
     avatar_url = models.URLField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)
+    two_factor_enabled = models.BooleanField(default=False)
+    two_factor_secret = models.CharField(max_length=32, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -84,3 +86,21 @@ class SupportMessage(models.Model):
     message = models.TextField()
     attachment_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class AuditLog(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    action_type = models.CharField(max_length=100)
+    entity_type = models.CharField(max_length=100, blank=True, null=True)
+    entity_id = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, null=True)
+    previous_value = models.JSONField(null=True, blank=True)
+    new_value = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} - {self.action_type} - {self.created_at}"

@@ -1,6 +1,7 @@
 "use client"
 
 import { useNotifications } from '@/context/NotificationContext';
+import NotificationBadge from "./NotificationBadge";
 import { Bell, ChevronDown, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';

@@ -37,25 +37,24 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      title: "Total Revenue",
-      value: `$${stats?.total_revenue?.toLocaleString() || 0}`,
-      icon: DollarSign,
+      title: "Gross Revenue",
+      value: `$${(stats?.gross_revenue || 0).toLocaleString()}`,
+      icon: DollarSign, subtitle: "Lifetime",
     },
     {
       title: "Total Orders",
       value: stats?.total_orders || 0,
-      icon: ShoppingBag,
+      icon: ShoppingBag, subtitle: "All time",
     },
     {
-      title: "Active Customers",
-      value: stats?.total_customers?.toLocaleString() || 0,
-      subtitle: `${stats?.new_customers_30d || 0} new this month`,
-      icon: Users,
+      title: "Avg Order Value",
+      value: `$${parseFloat(stats?.aov || 0).toFixed(2)}`,
+      icon: Users, subtitle: "Per order",
     },
     {
-      title: "Orders (30d)",
-      value: stats?.recent_orders_30d?.toLocaleString() || 0,
-      icon: Package,
+      title: "Repeat Rate",
+      value: `${(stats?.repeat_purchase_rate || 0).toFixed(1)}%`,
+      icon: Package, subtitle: "Customer loyalty",
     },
   ]
 

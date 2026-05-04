@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import Address, Wallet, WalletTransaction, SupportTicket, SupportMessage
+from .models import Address, Wallet, WalletTransaction, SupportTicket, SupportMessage, AuditLog
 
 User = get_user_model()
 
@@ -65,3 +65,21 @@ class SupportTicketSerializer(serializers.ModelSerializer):
         model = SupportTicket
         fields = '__all__'
         read_only_fields = ('user',)
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    user_email = serializers.ReadOnlyField(source='user.email')
+
+    class Meta:
+        model = AuditLog
+        fields = '__all__'
+
+class TwoFactorSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=6)
+    secret = serializers.CharField(max_length=32, required=False)
+
+class SessionSerializer(serializers.Serializer):
+    jti = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    expires_at = serializers.DateTimeField()
+    ip_address = serializers.IPAddressField(required=False)
+    user_agent = serializers.CharField(required=False)

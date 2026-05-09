@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
+import SEOFields from "./SEOFields"
 
 export default function ProductForm({ product, categories, onClose, onSuccess }: any) {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ export default function ProductForm({ product, categories, onClose, onSuccess }:
     category: product?.category || "",
     brand: product?.brand || "",
     stock_quantity: product?.stock_quantity || 0,
+    low_stock_threshold: product?.low_stock_threshold || 10,
     status: product?.status || "active",
     slug: product?.slug || "",
   })
@@ -62,6 +64,18 @@ export default function ProductForm({ product, categories, onClose, onSuccess }:
                 className="rounded-xl h-12" required
               />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Low Stock Threshold</label>
+              <Input
+                type="number"
+                value={formData.low_stock_threshold}
+                onChange={(e) => setFormData({ ...formData, low_stock_threshold: parseInt(e.target.value) })}
+                className="rounded-xl"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-bold">Slug</label>
               <Input
@@ -147,6 +161,12 @@ export default function ProductForm({ product, categories, onClose, onSuccess }:
             </Button>
           </div>
         </form>
+
+        {product && (
+          <div className="mt-12">
+            <SEOFields model="product" objectId={product.id} />
+          </div>
+        )}
       </div>
     </div>
   )

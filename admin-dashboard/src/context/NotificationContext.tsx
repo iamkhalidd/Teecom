@@ -79,7 +79,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     setLoading(true);
     setError(null);
     try {
-      const data = await api.notifications.list();
+      const data = await api.admin.notifications.list();
       setNotifications(data);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch notifications');
@@ -91,7 +91,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const data = await api.notifications.unreadCount();
+      const data = await api.admin.notifications.unreadCount();
       setUnreadCount(data.unread_count);
     } catch (err: any) {
       console.error('Error fetching unread count:', err);
@@ -100,7 +100,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   const fetchPreferences = useCallback(async () => {
     try {
-      const data = await api.notifications.preferences.get();
+      const data = await api.admin.notifications.preferences.get();
       setPreferences(data);
     } catch (err: any) {
       // Preferences might not exist yet, that's OK
@@ -111,7 +111,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   const markAsRead = useCallback(async (id: number) => {
     try {
-      await api.notifications.markAsRead(id);
+      await api.admin.notifications.markAsRead(id);
       // Update local state
       setNotifications(prev => 
         prev.map(n => n.id === id ? { ...n, is_read: true } : n)
@@ -125,7 +125,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   const markAsUnread = useCallback(async (id: number) => {
     try {
-      await api.notifications.markAsUnread(id);
+      await api.admin.notifications.markAsUnread(id);
       // Update local state
       setNotifications(prev => 
         prev.map(n => n.id === id ? { ...n, is_read: false } : n)
@@ -139,7 +139,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   const archive = useCallback(async (id: number) => {
     try {
-      await api.notifications.archive(id);
+      await api.admin.notifications.archive(id);
       // Update local state
       setNotifications(prev => prev.filter(n => n.id !== id));
       setUnreadCount(prev => {
@@ -154,7 +154,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   const markAllAsRead = useCallback(async () => {
     try {
-      await api.notifications.markAllAsRead();
+      await api.admin.notifications.markAllAsRead();
       // Update local state
       setNotifications(prev => 
         prev.map(n => ({ ...n, is_read: true }))
@@ -168,7 +168,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   const clearRead = useCallback(async () => {
     try {
-      await api.notifications.clearRead();
+      await api.admin.notifications.clearRead();
       // Update local state
       setNotifications(prev => prev.filter(n => !n.is_read));
       setUnreadCount(0);
@@ -182,9 +182,9 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     try {
       let response;
       if (preferences) {
-        response = await api.notifications.preferences.partialUpdate({ ...preferences, ...updates });
+        response = await api.admin.notifications.preferences.partialUpdate({ ...preferences, ...updates });
       } else {
-        response = await api.notifications.preferences.update({ ...updates });
+        response = await api.admin.notifications.preferences.update({ ...updates });
       }
       setPreferences(response);
     } catch (err: any) {

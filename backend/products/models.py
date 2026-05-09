@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 class Product(models.Model):
     STATUS_CHOICES = (
@@ -16,6 +17,7 @@ class Product(models.Model):
     category = models.ForeignKey('categories.Category', on_delete=models.CASCADE, related_name='products')
     brand = models.CharField(max_length=100, blank=True, null=True)
     stock_quantity = models.PositiveIntegerField(default=0)
+    low_stock_threshold = models.PositiveIntegerField(default=10)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     rating_average = models.FloatField(default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -31,6 +33,7 @@ class ProductVariant(models.Model):
     color = models.CharField(max_length=50, blank=True, null=True)
     price_override = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     stock_quantity = models.PositiveIntegerField(default=0)
+    low_stock_threshold = models.PositiveIntegerField(default=10, null=True, blank=True)
 
     def __str__(self):
         return f"{self.product.name} - {self.size}/{self.color} ({self.sku})"
@@ -66,3 +69,26 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+class InventoryMovement(models.Model):
+    MOVEMENT_TYPES = (
+        ('manual', 'Manual Adjustment'),
+        ('sale', 'Sale/Order Deduction'),
+        ('return', 'Return/Restock'),
+        ('import', 'Import Adjustment'),
+        ('correction', 'Correction'),
+    )
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inventory_movements')
+    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, null=True, blank=True, related_name='inventory_movements')
+    type = models.CharField(max_length=20, choices=MOVEMENT_TYPES)
+    quantity_change = models.IntegerField()
+    previous_quantity = models.PositiveIntegerField()
+    new_quantity = models.PositiveIntegerField()
+    reason = models.TextField(blank=True, null=True)
+    order = models.ForeignKey('orders.Order', on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.product.name} ({self.variant}) - {self.type} ({self.quantity_change})"

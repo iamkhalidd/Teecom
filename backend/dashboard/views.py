@@ -1,47 +1,28 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Sum, Count
 from django.utils import timezone
-from datetime import timedelta
-from orders.models import Order
-from orders.serializers import OrderSerializer
-from products.models import Product
-from accounts.models import User
+from datetime import datetime, timedelta
 from core.permissions import IsAdminUser
+from .services import AnalyticsService
 
 class DashboardStatsView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        # Stats
-        total_revenue = Order.objects.filter(status='paid').aggregate(Sum('total'))['total__sum'] or 0
-        total_orders = Order.objects.count()
-        total_customers = User.objects.filter(role='customer').count()
+        days = request.query_params.get('days', 30)
+        start_date_str = request.query_params.get('start_date')
+        end_date_str = request.query_params.get('end_date')
 
-        # Trends (last 30 days)
-        last_month = timezone.now() - timedelta(days=30)
-        new_customers = User.objects.filter(role='customer', created_at__gte=last_month).count()
-        recent_orders_count = Order.objects.filter(created_at__gte=last_month).count()
+        try:
+            if start_date_str and end_date_str:
+                start_date = datetime.fromisoformat(start_date_str)
+                end_date = datetime.fromisoformat(end_date_str)
+            else:
+                days = int(days)
+                end_date = timezone.now()
+                start_date = end_date - timedelta(days=days)
 
-        # Top Products
-        top_products = Product.objects.annotate(
-            order_count=Count('orderitem')
-        ).order_by('-order_count')[:5]
-
-        top_products_data = [{
-            'id': p.id,
-            'name': p.name,
-            'sales': p.order_count
-        } for p in top_products]
-
-        recent_orders = OrderSerializer(Order.objects.order_by('-created_at')[:5], many=True).data
-
-        return Response({
-            'total_revenue': total_revenue,
-            'total_orders': total_orders,
-            'total_customers': total_customers,
-            'new_customers_30d': new_customers,
-            'recent_orders_30d': recent_orders_count,
-            'top_products': top_products_data,
-            'recent_orders': recent_orders
-        })
+            stats = AnalyticsService.get_revenue_stats(start_date, end_date)
+            return Response(stats)
+        except ValueError:
+            return Response({'error': 'Invalid date format or days parameter'}, status=400)

@@ -2,10 +2,12 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
+from django.db import transaction
 from .models import Order, Coupon, Wishlist
 from .serializers import OrderSerializer, CouponSerializer, WishlistSerializer
 from products.models import Product
 from core.permissions import IsOwnerOrAdmin, IsAdminUser
+from accounts.utils import log_action
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
@@ -15,6 +17,34 @@ class OrderViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff or getattr(self.request.user, 'role', '') == 'admin':
             return Order.objects.all()
         return Order.objects.filter(user=self.request.user)
+
+    @action(detail=False, methods=['post'], url_path='bulk-update', permission_classes=[IsAdminUser])
+    def bulk_update(self, request):
+        ids = request.data.get('ids', [])
+        action = request.data.get('action')
+        value = request.data.get('value')
+
+        if not ids or not action:
+            return Response({'error': 'ids and action are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        orders = Order.objects.filter(id__in=ids)
+
+        with transaction.atomic():
+            if action == 'status':
+                # Map potential bulk action values to order status
+                # e.g. mark as processing, shipped, etc.
+                orders.update(status=value)
+                log_action(request.user, 'ORDER_BULK_UPDATE', 'order', None, f"Bulk updated status to {value} for {orders.count()} orders", request)
+            elif action == 'payment_status':
+                orders.update(payment_status=value)
+                log_action(request.user, 'ORDER_BULK_UPDATE', 'order', None, f"Bulk updated payment status to {value} for {orders.count()} orders", request)
+            elif action == 'cancel':
+                orders.update(status='cancelled')
+                log_action(request.user, 'ORDER_BULK_UPDATE', 'order', None, f"Bulk cancelled {orders.count()} orders", request)
+            else:
+                return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'status': 'bulk update successful', 'count': orders.count()})
 
 class CouponViewSet(viewsets.ModelViewSet):
     queryset = Coupon.objects.all()

@@ -13,3 +13,6 @@ djangorestframework-simplejwt>=5.3.1
 Pillow>=10.2.0
 django-filter>=23.5
 model-utils>=4.3.0
+pyotp>=2.9.0
+qrcode>=8.2
+django-otp>=1.7.0

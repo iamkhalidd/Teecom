@@ -1,5 +1,3 @@
-import csv
-from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,31 +10,6 @@ from core.permissions import IsOwnerOrAdmin, IsAdminUser
 from accounts.utils import log_action
 
 class OrderViewSet(viewsets.ModelViewSet):
-    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
-    def export_csv(self, request):
-        ids = request.query_params.get('ids', '').split(',')
-        if ids == ['']:
-            orders = Order.objects.all()
-        else:
-            orders = Order.objects.filter(id__in=ids)
-
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="orders.csv"'
-
-        writer = csv.writer(response)
-        writer.writerow(['Order Number', 'Customer', 'Total', 'Status', 'Date'])
-
-        for order in orders:
-            writer.writerow([
-                order.order_number,
-                order.user.email,
-                order.total,
-                order.status,
-                order.created_at
-            ])
-
-        return response
-
     serializer_class = OrderSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwnerOrAdmin)
 

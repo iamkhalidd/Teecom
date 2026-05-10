@@ -6,24 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useCart } from "@/context/CartContext"
 import NotificationDropdown from "@/components/navigation/NotificationDropdown"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { api } from "@/lib/api"
 
 export default function Header() {
   const { cart } = useCart()
   const itemCount = cart?.items?.length || 0
-  const [searchQuery, setSearchQuery] = useState("")
-  const router = useRouter()
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      // Track search query
-      api.dashboard.trackSearch({ query: searchQuery, results_count: 0 }).catch(() => {})
-      router.push(`/products?search=${encodeURIComponent(searchQuery)}`)
-    }
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -49,16 +35,14 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-center px-4 md:px-20">
-          <form onSubmit={handleSearch} className="relative w-full max-w-[500px] hidden sm:block">
+          <div className="relative w-full max-w-[500px] hidden sm:block">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search products..."
               className="w-full pl-10 pr-4 h-10 bg-secondary border-none rounded-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </form>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">

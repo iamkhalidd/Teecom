@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
 import ProductForm from "@/components/admin/ProductForm"
+import { toast } from "sonner"
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([])
@@ -46,8 +47,9 @@ export default function AdminProductsPage() {
       try {
         await api.admin.products.delete(id)
         setProducts(products.filter(p => p.id !== id))
+        toast.success("Product deleted")
       } catch (err) {
-        alert("Failed to delete product")
+        toast.error("Failed to delete product")
       }
     }
   }
@@ -58,6 +60,10 @@ export default function AdminProductsPage() {
   }
 
   const handleAdd = () => {
+    setEditingProduct(null)
+    setShowForm(true)
+  }
+
   const handleBulkAction = async (action: string, value?: any) => {
     try {
       await api.admin.products.bulkUpdate({ ids: selectedIds, action, value })
@@ -69,13 +75,8 @@ export default function AdminProductsPage() {
     }
   }
 
-    setEditingProduct(null)
-    setShowForm(true)
-  }
-
   return (
-    <div className="relative">
-    <div className="p-8 space-y-8">
+    <div className="relative p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Products</h1>
@@ -91,7 +92,11 @@ export default function AdminProductsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search products..." className="pl-10 rounded-xl border-none shadow-sm h-12" />
         </div>
-        <Button variant="outline" className="rounded-xl h-12 gap-2 border-none shadow-sm" onClick={() => window.open(process.env.NEXT_PUBLIC_API_URL + "/products/export_csv/", "_blank")}>
+        <Button
+          variant="outline"
+          className="rounded-xl h-12 gap-2 border-none shadow-sm"
+          onClick={() => window.open(process.env.NEXT_PUBLIC_API_URL + "/products/export_csv/", "_blank")}
+        >
           <Download className="h-4 w-4" /> Export
         </Button>
         <Button variant="outline" className="rounded-xl h-12 gap-2 border-none shadow-sm">
@@ -107,10 +112,17 @@ export default function AdminProductsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {products.map((product) => (
-            <div key={product.id} className={}>
+            <div
+              key={product.id}
+              className={`bg-card p-4 rounded-2xl flex items-center justify-between shadow-sm group transition-all ${selectedIds.includes(product.id) ? "ring-2 ring-primary" : ""}`}
+            >
               <div className="flex items-center gap-4">
-                <input type="checkbox" className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary" checked={selectedIds.includes(product.id)} onChange={() => toggleSelection(product.id)} />
-              <div className="flex items-center gap-4">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  checked={selectedIds.includes(product.id)}
+                  onChange={() => toggleSelection(product.id)}
+                />
                 <div className="h-16 w-16 rounded-xl bg-muted overflow-hidden flex-shrink-0">
                   {product.images?.[0] && (
                     <img src={product.images[0].image_url} alt={product.name} className="h-full w-full object-cover" />
@@ -151,7 +163,6 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-
       {selectedIds.length > 0 && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-4">
           <span className="text-sm font-bold">{selectedIds.length} items selected</span>
@@ -164,6 +175,7 @@ export default function AdminProductsPage() {
           <Button size="sm" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10" onClick={() => setSelectedIds([])}>Cancel</Button>
         </div>
       )}
+
       {showForm && (
         <ProductForm
           product={editingProduct}
@@ -175,5 +187,3 @@ export default function AdminProductsPage() {
     </div>
   )
 }
-
-    </div>

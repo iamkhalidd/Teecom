@@ -71,7 +71,7 @@ export default function TrafficPage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button >
+          <Button>
             <TrendingUp className="h-4 w-4 mr-2" />
             Conversion Report
           </Button>

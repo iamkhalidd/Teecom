@@ -136,9 +136,6 @@ export const api = {
   },
   admin: {
     stats: () => apiFetch('/dashboard/stats/'),
-    traffic: {
-      listSearches: () => apiFetch('/dashboard/searches/'),
-    },
     products: {
       list: () => apiFetch('/products/'),
       create: (data: any) => apiFetch('/products/', { method: 'POST', body: JSON.stringify(data) }),
@@ -149,10 +146,6 @@ export const api = {
       list: () => apiFetch('/accounts/management/'),
       toggleActive: (id: number) => apiFetch(`/accounts/management/${id}/toggle_active/`, { method: 'POST' }),
     }
-  },
-  dashboard: {
-    trackSearch: (data: any) => apiFetch('/dashboard/track/search/', { method: 'POST', body: JSON.stringify(data), auth: false }),
-    trackProductView: (data: any) => apiFetch('/dashboard/track/product-view/', { method: 'POST', body: JSON.stringify(data), auth: false }),
   },
   notifications: {
     list: (params?: string) => apiFetch(`/notifications/notifications/${params ? `?${params}` : ''}`),

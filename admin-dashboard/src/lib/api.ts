@@ -235,6 +235,19 @@ export const api = {
     },
     traffic: {
       searches: () => apiFetch('/dashboard/searches/'),
+    },
+    payments: {
+      payouts: {
+        list: () => apiFetch('/payments/payouts/'),
+        create: (data: any) => apiFetch('/payments/payouts/', { method: 'POST', body: JSON.stringify(data) }),
+      }
+    },
+    tax: {
+      rules: {
+        list: () => apiFetch('/tax/rules/'),
+        create: (data: any) => apiFetch('/tax/rules/', { method: 'POST', body: JSON.stringify(data) }),
+        delete: (id: number) => apiFetch(`/tax/rules/${id}/`, { method: 'DELETE' }),
+      }
     }
   }
 }

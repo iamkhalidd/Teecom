@@ -1,19 +1,16 @@
 "use client"
 
 import {
-  LayoutDashboard,
+  Users,
   Package,
   ShoppingBag,
-  Users,
-  Ticket,
-  BarChart2,
-  Palette,
-  MessageSquare,
+  LayoutDashboard,
   Mail,
-  CreditCard,
-  Activity,
+  MessageSquare,
+  BarChart2,
   Settings,
   LogOut,
+  Ticket,
   ChevronRight,
   Search
 } from "lucide-react"
@@ -32,11 +29,9 @@ const sidebarLinks = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Coupons", href: "/coupons", icon: Ticket },
   { name: "Analytics", href: "/analytics", icon: BarChart2 },
-  { name: "Storefront", href: "/content", icon: Palette },
+  { name: "Storefront", href: "/content", icon: LayoutDashboard },
   { name: "Reviews", href: "/reviews", icon: MessageSquare },
   { name: "Marketing", href: "/marketing", icon: Mail },
-  { name: "Finance", href: "/finance", icon: CreditCard },
-  { name: "Traffic", href: "/traffic", icon: Activity },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

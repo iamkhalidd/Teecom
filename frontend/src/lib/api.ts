@@ -60,7 +60,10 @@ export async function apiFetch(endpoint: string, options: RequestOptions = {}) {
     } else {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
-      window.location.href = '/account'
+      // Do not redirect on home page for optional auth data like unread counts
+      if (window.location.pathname !== '/') {
+        window.location.href = '/account'
+      }
       throw new Error('Session expired')
     }
   }
@@ -126,8 +129,16 @@ export const api = {
     list: (productId: number) => apiFetch(`/reviews/?product=${productId}`, { auth: false }),
     create: (data: any) => apiFetch('/reviews/', { method: 'POST', body: JSON.stringify(data) }),
   },
+  content: {
+    banners: () => apiFetch('/content/banners/', { auth: false }),
+    announcements: () => apiFetch('/content/announcements/', { auth: false }),
+    blocks: () => apiFetch('/content/blocks/', { auth: false }),
+  },
   admin: {
     stats: () => apiFetch('/dashboard/stats/'),
+    traffic: {
+      listSearches: () => apiFetch('/dashboard/searches/'),
+    },
     products: {
       list: () => apiFetch('/products/'),
       create: (data: any) => apiFetch('/products/', { method: 'POST', body: JSON.stringify(data) }),
@@ -138,6 +149,10 @@ export const api = {
       list: () => apiFetch('/accounts/management/'),
       toggleActive: (id: number) => apiFetch(`/accounts/management/${id}/toggle_active/`, { method: 'POST' }),
     }
+  },
+  dashboard: {
+    trackSearch: (data: any) => apiFetch('/dashboard/track/search/', { method: 'POST', body: JSON.stringify(data), auth: false }),
+    trackProductView: (data: any) => apiFetch('/dashboard/track/product-view/', { method: 'POST', body: JSON.stringify(data), auth: false }),
   },
   notifications: {
     list: (params?: string) => apiFetch(`/notifications/notifications/${params ? `?${params}` : ''}`),

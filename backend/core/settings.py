@@ -72,6 +72,9 @@ INSTALLED_APPS = [
     "notifications",
     "django_filters",
     "seo",
+    "content",
+    "marketing",
+    "tax",
 ]
 
 MIDDLEWARE = [

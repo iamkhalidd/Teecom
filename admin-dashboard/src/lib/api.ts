@@ -193,6 +193,48 @@ export const api = {
         update: (data: any) => apiFetch('/notifications/preferences/my_preferences/', { method: 'PUT' }),
         partialUpdate: (data: any) => apiFetch('/notifications/preferences/my_preferences/', { method: 'PATCH' }),
       }
+    },
+    content: {
+      banners: {
+        list: () => apiFetch('/content/banners/'),
+        create: (data: any) => apiFetch('/content/banners/', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: number, data: any) => apiFetch(`/content/banners/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+        delete: (id: number) => apiFetch(`/content/banners/${id}/`, { method: 'DELETE' }),
+      },
+      announcements: {
+        list: () => apiFetch('/content/announcements/'),
+        create: (data: any) => apiFetch('/content/announcements/', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: number, data: any) => apiFetch(`/content/announcements/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+        delete: (id: number) => apiFetch(`/content/announcements/${id}/`, { method: 'DELETE' }),
+      },
+      blocks: {
+        list: () => apiFetch('/content/blocks/'),
+        create: (data: any) => apiFetch('/content/blocks/', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: number, data: any) => apiFetch(`/content/blocks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+        delete: (id: number) => apiFetch(`/content/blocks/${id}/`, { method: 'DELETE' }),
+      }
+    },
+    reviews: {
+      list: (params?: string) => apiFetch(`/reviews/${params ? `?${params}` : ""}`),
+      update: (id: number, data: any) => apiFetch(`/reviews/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      reply: (id: number, data: any) => apiFetch(`/reviews/${id}/reply/`, { method: 'POST', body: JSON.stringify(data) }),
+      delete: (id: number) => apiFetch(`/reviews/${id}/`, { method: 'DELETE' }),
+    },
+    marketing: {
+      templates: {
+        list: () => apiFetch('/marketing/templates/'),
+        create: (data: any) => apiFetch('/marketing/templates/', { method: 'POST', body: JSON.stringify(data) }),
+        delete: (id: number) => apiFetch(`/marketing/templates/${id}/`, { method: 'DELETE' }),
+      },
+      campaigns: {
+        list: () => apiFetch('/marketing/campaigns/'),
+        create: (data: any) => apiFetch('/marketing/campaigns/', { method: 'POST', body: JSON.stringify(data) }),
+        send: (id: number) => apiFetch(`/marketing/campaigns/${id}/send/`, { method: 'POST' }),
+        delete: (id: number) => apiFetch(`/marketing/campaigns/${id}/`, { method: 'DELETE' }),
+      }
+    },
+    traffic: {
+      searches: () => apiFetch('/dashboard/searches/'),
     }
   }
 }

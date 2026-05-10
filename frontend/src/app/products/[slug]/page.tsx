@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import ProductGallery from "@/components/products/ProductGallery"
 import ProductInfo from "@/components/products/ProductInfo"
+import ProductReviews from "@/components/products/ProductReviews"
 import PopularProducts from "@/components/home/PopularProducts"
 import { api } from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -46,6 +47,8 @@ export default function ProductDetailsPage() {
             <ProductGallery images={product.images || []} />
             <ProductInfo product={product} />
           </div>
+
+          <ProductReviews productId={product.id} />
 
           <div className="mt-20">
              <PopularProducts />

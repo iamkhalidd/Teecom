@@ -1,3 +1,5 @@
+import csv
+from django.http import HttpResponse
 from decimal import Decimal
 from django.db import transaction
 from rest_framework import viewsets, permissions, filters, status
@@ -12,6 +14,32 @@ from core.permissions import IsAdminUser
 from accounts.utils import log_action
 
 class ProductViewSet(viewsets.ModelViewSet):
+    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
+    def export_csv(self, request):
+        ids = request.query_params.get('ids', '').split(',')
+        if ids == ['']:
+            products = Product.objects.all()
+        else:
+            products = Product.objects.filter(id__in=ids)
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="products.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Name', 'SKU', 'Price', 'Stock', 'Status', 'Category'])
+
+        for product in products:
+            writer.writerow([
+                product.name,
+                product.sku,
+                product.price,
+                product.stock_quantity,
+                product.status,
+                product.category.name if product.category else 'N/A'
+            ])
+
+        return response
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

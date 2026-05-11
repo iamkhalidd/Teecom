@@ -101,12 +101,14 @@ export const api = {
   },
   carts: {
     get: () => apiFetch('/carts/current/'),
-    addItem: (data: any) => apiFetch('/carts/current/', { method: 'POST', body: JSON.stringify(data) }),
+    addItem: (productId: number, quantity: number, size?: string, color?: string) =>
+      apiFetch('/carts/current/', { method: 'POST', body: JSON.stringify({ product_id: productId, quantity, size, color }) }),
     updateItem: (id: number, data: any) => apiFetch(`/carts/items/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     removeItem: (id: number) => apiFetch(`/carts/items/${id}/`, { method: 'DELETE' }),
   },
   orders: {
     list: () => apiFetch('/orders/'),
+    detail: (id: string) => apiFetch(`/orders/${id}/`),
     create: (data: any) => apiFetch('/orders/', { method: 'POST', body: JSON.stringify(data) }),
     wishlist: {
       get: () => apiFetch('/orders/wishlist/'),
@@ -127,12 +129,14 @@ export const api = {
     create: (data: any) => apiFetch('/reviews/', { method: 'POST', body: JSON.stringify(data) }),
   },
   admin: {
-    stats: () => apiFetch('/dashboard/stats/'),
+    stats: (params?: string) => apiFetch(`/dashboard/stats/${params ? `?${params}` : ""}`),
     products: {
       list: () => apiFetch('/products/'),
       create: (data: any) => apiFetch('/products/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: number, data: any) => apiFetch(`/products/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: number) => apiFetch(`/products/${id}/`, { method: 'DELETE' }),
+      bulkUpdate: (data: any) => apiFetch('/products/bulk-update/', { method: 'POST', body: JSON.stringify(data) }),
+      bulkDelete: (data: any) => apiFetch('/products/bulk-delete/', { method: 'POST', body: JSON.stringify(data) }),
     },
     users: {
       list: () => apiFetch('/accounts/management/'),

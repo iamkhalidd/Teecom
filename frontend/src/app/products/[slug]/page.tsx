@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import ProductGallery from "@/components/products/ProductGallery"
 import ProductInfo from "@/components/products/ProductInfo"
+import ProductReviews from "@/components/products/ProductReviews"
 import PopularProducts from "@/components/home/PopularProducts"
 import { api } from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -45,6 +46,11 @@ export default function ProductDetailsPage() {
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
             <ProductGallery images={product.images || []} />
             <ProductInfo product={product} />
+          </div>
+
+          <div className="mt-20">
+            <h2 className="text-2xl font-bold mb-8">Customer Reviews</h2>
+            <ProductReviews productId={product.id} />
           </div>
 
           <div className="mt-20">

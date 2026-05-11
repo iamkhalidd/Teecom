@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [refreshCart])
 
   const addItem = async (productId: number, quantity: number, size?: string, color?: string) => {
-    await api.carts.addItem({ product: productId, quantity, size, color })
+    await api.carts.addItem(productId, quantity, size, color)
     await refreshCart()
   }
 

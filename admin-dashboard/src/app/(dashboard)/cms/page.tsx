@@ -42,9 +42,10 @@ export default function CMSPage() {
   const handleDelete = async (id: number) => {
     if (confirm("Delete this special offer?")) {
       try {
-        await apiFetch(`/products/offers/${id}/`, { method: 'DELETE' })
+        await api.products.offers.delete(id)
         fetchOffers()
       } catch (err) {
+        console.error('Delete error:', err)
         alert("Failed to delete offer")
       }
     }
@@ -59,10 +60,7 @@ export default function CMSPage() {
         discount_percentage: parseInt(newOffer.discount_percentage as string),
         expiry_date: new Date(newOffer.expiry_date).toISOString()
       }
-      await apiFetch('/products/offers/', {
-        method: 'POST',
-        body: JSON.stringify(dataToSubmit)
-      })
+      await api.products.offers.create(dataToSubmit)
       setIsDialogOpen(false)
       setNewOffer({ title: "", description: "", discount_percentage: "", expiry_date: "", image_url: "", is_active: true })
       fetchOffers()
@@ -72,20 +70,6 @@ export default function CMSPage() {
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  // Local helper for direct API calls not yet in the client
-  const apiFetch = async (endpoint: string, options: any) => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
-    const token = localStorage.getItem('access_token')
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    }
-    const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers })
-    if (!res.ok) throw new Error('API Error')
-    if (res.status === 204) return null
-    return res.json()
   }
 
   return (

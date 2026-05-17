@@ -30,6 +30,7 @@ export default function SecurityPage() {
   const [password, setPassword] = useState("")
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [sessions, setSessions] = useState<any[]>([])
+  const [showSecret, setShowSecret] = useState(false)
 
   const fetchAuditLogs = useCallback(async () => {
     setIsRefreshing(true)
@@ -291,7 +292,18 @@ export default function SecurityPage() {
               <div className="w-full space-y-4">
                 <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 text-center">
                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Manual Key</p>
-                   <code className="text-sm font-bold tracking-widest">{setupData.secret}</code>
+                   <div className="flex items-center justify-center gap-2">
+                      <code className="text-sm font-bold tracking-widest" style={{filter: showSecret ? 'none' : 'blur(0.4em)'}}>
+                        {setupData.secret}
+                      </code>
+                      <button 
+                        type="button"
+                        onClick={() => setShowSecret(!showSecret)}
+                        className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+                      >
+                        {showSecret ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold">Verification Code</label>

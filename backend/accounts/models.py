@@ -104,3 +104,51 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.action_type} - {self.created_at}"
+
+class AdminSettings(models.Model):
+    CURRENCY_CHOICES = (
+        ('USD', 'US Dollar ($)'),
+        ('EUR', 'Euro (€)'),
+        ('GBP', 'British Pound (£)'),
+        ('JPY', 'Japanese Yen (¥)'),
+        ('AUD', 'Australian Dollar ($)'),
+        ('CAD', 'Canadian Dollar ($)'),
+        ('INR', 'Indian Rupee (₹)'),
+    )
+    
+    TIMEZONE_CHOICES = (
+        ('UTC', 'UTC (Universal Coordinated Time)'),
+        ('US/Eastern', 'Eastern Time (ET)'),
+        ('US/Central', 'Central Time (CT)'),
+        ('US/Mountain', 'Mountain Time (MT)'),
+        ('US/Pacific', 'Pacific Time (PT)'),
+        ('Europe/London', 'London (GMT/BST)'),
+        ('Europe/Paris', 'Paris (CET/CEST)'),
+        ('Asia/Tokyo', 'Tokyo (JST)'),
+        ('Asia/Dubai', 'Dubai (GST)'),
+        ('Australia/Sydney', 'Sydney (AEDT/AEST)'),
+        ('Asia/Kolkata', 'India Standard Time (IST)'),
+    )
+
+    store_name = models.CharField(max_length=255, default='LUMOCART')
+    store_email = models.EmailField(default='support@lumocart.com')
+    store_description = models.TextField(blank=True, default='Premium eCommerce store')
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
+    timezone = models.CharField(max_length=50, choices=TIMEZONE_CHOICES, default='UTC')
+    logo_url = models.URLField(blank=True, null=True)
+    favicon_url = models.URLField(blank=True, null=True)
+    primary_color = models.CharField(max_length=7, default='#000000', help_text='Hex color code')
+    secondary_color = models.CharField(max_length=7, default='#FFFFFF', help_text='Hex color code')
+    support_phone = models.CharField(max_length=20, blank=True)
+    address_line = models.TextField(blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Admin Settings'
+        verbose_name_plural = 'Admin Settings'
+
+    def __str__(self):
+        return f'Settings - {self.store_name}'

@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, History, AlertTriangle, ArrowUpDown, Package, PlusCircle } from "lucide-react"
+import { Search, History, AlertTriangle, ArrowUpDown, Package, PlusCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { api } from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -15,6 +16,10 @@ export default function InventoryPage() {
   const [lowStock, setLowStock] = useState<any>({ products: [], variants: [] })
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [restockDialog, setRestockDialog] = useState(false)
+  const [restockData, setRestockData] = useState({ quantity: 10, reason: "Restock" })
+  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [isRestocking, setIsRestocking] = useState(false)
 
   const fetchInventoryData = useCallback(async () => {
     setLoading(true)
@@ -35,6 +40,33 @@ export default function InventoryPage() {
   useEffect(() => {
     fetchInventoryData()
   }, [fetchInventoryData])
+
+  const handleRestockClick = (item: any, isVariant: boolean) => {
+    setSelectedItem({ ...item, isVariant })
+    setRestockDialog(true)
+    setRestockData({ quantity: 10, reason: "Restock" })
+  }
+
+  const handleRestockSubmit = async () => {
+    if (!selectedItem) return
+    setIsRestocking(true)
+    try {
+      await api.admin.inventory.restock({
+        product_id: selectedItem.id || selectedItem.product_id,
+        variant_id: selectedItem.isVariant ? selectedItem.id : undefined,
+        quantity_change: parseInt(restockData.quantity.toString()),
+        reason: restockData.reason,
+      })
+      alert("Stock restocked successfully!")
+      setRestockDialog(false)
+      await fetchInventoryData()
+    } catch (err: any) {
+      console.error("Restock error:", err)
+      alert(err.message || "Failed to restock item")
+    } finally {
+      setIsRestocking(false)
+    }
+  }
 
   const filteredMovements = movements.filter(m =>
     m.product_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -170,7 +202,12 @@ export default function InventoryPage() {
                             {product.stock_quantity} left
                            </Badge>
                         </div>
-                        <Button variant="ghost" size="sm" className="mt-2 text-xs h-8 gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="mt-2 text-xs h-8 gap-1"
+                          onClick={() => handleRestockClick(product, false)}
+                        >
                           <PlusCircle className="h-3 w-3" /> Restock
                         </Button>
                       </div>
@@ -196,7 +233,12 @@ export default function InventoryPage() {
                             {variant.stock_quantity} left
                            </Badge>
                         </div>
-                        <Button variant="ghost" size="sm" className="mt-2 text-xs h-8 gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="mt-2 text-xs h-8 gap-1"
+                          onClick={() => handleRestockClick(variant, true)}
+                        >
                           <PlusCircle className="h-3 w-3" /> Restock
                         </Button>
                       </div>
@@ -208,6 +250,67 @@ export default function InventoryPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Restock Dialog */}
+      <Dialog open={restockDialog} onOpenChange={setRestockDialog}>
+        <DialogContent className="rounded-[2rem] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Restock Item</DialogTitle>
+          </DialogHeader>
+          
+          {selectedItem && (
+            <div className="space-y-6 py-4">
+              <div className="p-4 bg-muted/30 rounded-xl">
+                <p className="text-sm text-muted-foreground mb-1">Product</p>
+                <p className="font-bold">{selectedItem.name || selectedItem.product_name}</p>
+                {selectedItem.isVariant && (
+                  <p className="text-xs text-muted-foreground mt-1">{selectedItem.size} / {selectedItem.color} (SKU: {selectedItem.sku})</p>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-bold mb-2 block">Quantity to Add</label>
+                  <Input 
+                    type="number"
+                    min="1"
+                    value={restockData.quantity}
+                    onChange={(e) => setRestockData({...restockData, quantity: parseInt(e.target.value) || 0})}
+                    className="h-10 rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold mb-2 block">Reason</label>
+                  <Input 
+                    value={restockData.reason}
+                    onChange={(e) => setRestockData({...restockData, reason: e.target.value})}
+                    placeholder="e.g. Restock, Supplier delivery"
+                    className="h-10 rounded-lg"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setRestockDialog(false)}
+              className="rounded-lg"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleRestockSubmit}
+              disabled={isRestocking || !restockData.quantity}
+              className="rounded-lg font-bold"
+            >
+              {isRestocking ? "Restocking..." : "Confirm Restock"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

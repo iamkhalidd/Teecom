@@ -6,13 +6,16 @@ from rest_framework import generics, permissions, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
-from .models import Address, Wallet, SupportTicket, SupportMessage, AuditLog
+from .models import Address, Wallet, SupportTicket, SupportMessage, AuditLog, AdminSettings
 from .serializers import (
     UserSerializer, RegisterSerializer, AddressSerializer,
     WalletSerializer, SupportTicketSerializer, SupportMessageSerializer,
-    AuditLogSerializer, TwoFactorSerializer, SessionSerializer
+    AuditLogSerializer, TwoFactorSerializer, SessionSerializer,
+    ChangePasswordSerializer, AvatarUploadSerializer, AdminSettingsSerializer,
+    AdminProfileSerializer
 )
 from core.permissions import IsOwnerOrAdmin, IsAdminUser
 
@@ -29,6 +32,37 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def change_password(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = request.user
+        if not user.check_password(serializer.validated_data['old_password']):
+            return Response({'error': 'Old password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response({'message': 'Password changed successfully'})
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated],
+            parser_classes=[MultiPartParser, FormParser])
+    def upload_avatar(self, request):
+        serializer = AvatarUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        avatar = serializer.validated_data['avatar']
+        # In production, upload to cloud storage (S3, etc.)
+        # For now, generate a simple file path
+        filename = f"avatars/{request.user.id}_{avatar.name}"
+        avatar_url = f"/media/{filename}"
+
+        user = request.user
+        user.avatar_url = avatar_url
+        user.save()
+
+        return Response({'avatar_url': avatar_url, 'message': 'Avatar uploaded successfully'})
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -181,3 +215,38 @@ class SessionViewSet(viewsets.ViewSet):
             return Response({'status': 'revoked'})
         except OutstandingToken.DoesNotExist:
             return Response({'error': 'Token not found'}, status=404)
+
+class AdminSettingsView(generics.ListCreateAPIView):
+    queryset = AdminSettings.objects.all()
+    serializer_class = AdminSettingsSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_object(self):
+        obj, created = AdminSettings.objects.get_or_create(pk=1)
+        return obj
+
+    def get(self, request):
+        settings = self.get_object()
+        serializer = self.get_serializer(settings)
+        return Response(serializer.data)
+
+    def put(self, request):
+        settings = self.get_object()
+        serializer = self.get_serializer(settings, data=request.data, partial=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def patch(self, request):
+        settings = self.get_object()
+        serializer = self.get_serializer(settings, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+class AdminProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = AdminProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user

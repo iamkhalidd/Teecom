@@ -48,11 +48,6 @@ export async function apiFetch(endpoint: string, options: RequestOptions = {}) {
 
   // If 401 and we have a refresh token, try silent refresh
   if (response.status === 401 && auth && typeof window !== 'undefined') {
-    if (token === 'demo_token') {
-      // In demo mode, don't crash or redirect
-      return null
-    }
-
     const newToken = await refreshAccessToken()
     if (newToken) {
       headers.set('Authorization', `Bearer ${newToken}`)
@@ -64,6 +59,7 @@ export async function apiFetch(endpoint: string, options: RequestOptions = {}) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       window.location.href = '/login'
+      console.error('[AUTH] Session expired - redirecting to login')
       throw new Error('Session expired')
     }
   }
@@ -84,6 +80,14 @@ export const api = {
     login: (credentials: any) => apiFetch('/accounts/login/', { method: 'POST', body: JSON.stringify(credentials), auth: false }),
     register: (data: any) => apiFetch('/accounts/register/', { method: 'POST', body: JSON.stringify(data), auth: false }),
     me: () => apiFetch('/accounts/me/'),
+    changePassword: (data: any) => apiFetch('/accounts/change-password/', { method: 'POST', body: JSON.stringify(data) }),
+    uploadAvatar: (formData: FormData) => fetch(`${API_URL}/accounts/me/avatar/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('access_token') : null}`
+      },
+      body: formData
+    }).then(r => r.json()),
   },
   accounts: {
     addresses: {
@@ -100,7 +104,11 @@ export const api = {
     list: (params?: string) => apiFetch(`/products/${params ? `?${params}` : ''}`, { auth: false }),
     detail: (slug: string) => apiFetch(`/products/${slug}/`, { auth: false }),
     categories: () => apiFetch('/categories/', { auth: false }),
-    offers: () => apiFetch('/products/offers/', { auth: false }),
+    offers: {
+      list: () => apiFetch('/products/offers/', { auth: false }),
+      create: (data: any) => apiFetch('/products/offers/', { method: 'POST', body: JSON.stringify(data) }),
+      delete: (id: number) => apiFetch(`/products/offers/${id}/`, { method: 'DELETE' }),
+    },
   },
   carts: {
     get: () => apiFetch('/carts/current/'),
@@ -111,7 +119,9 @@ export const api = {
   orders: {
     list: () => apiFetch('/orders/'),
     detail: (id: string) => apiFetch(`/orders/${id}/`),
+    retrieve: (id: number) => apiFetch(`/orders/${id}/`),
     create: (data: any) => apiFetch('/orders/', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: any) => apiFetch(`/orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     bulkUpdate: (data: any) => apiFetch('/orders/bulk-update/', { method: 'POST', body: JSON.stringify(data) }),
     wishlist: {
       get: () => apiFetch('/orders/wishlist/'),
@@ -169,11 +179,14 @@ export const api = {
     inventory: {
       list: (params?: string) => apiFetch(`/products/inventory/${params ? `?${params}` : ''}`),
       adjust: (data: any) => apiFetch('/products/inventory/adjust/', { method: 'POST', body: JSON.stringify(data) }),
+      restock: (data: any) => apiFetch('/products/inventory/adjust/', { method: 'POST', body: JSON.stringify({...data, type: 'return'}) }),
       lowStock: () => apiFetch('/products/inventory/low-stock/'),
     },
     seo: {
       getMeta: (model: string, id: number) => apiFetch(`/seo/meta/get_metadata/?model=${model}&object_id=${id}`),
       updateMeta: (data: any) => apiFetch('/seo/meta/update_metadata/', { method: 'POST', body: JSON.stringify(data) }),
+      healthCheck: () => apiFetch('/seo/meta/health-check/'),
+      regenerateSitemap: () => apiFetch('/seo/meta/regenerate-sitemap/', { method: 'POST' }),
       redirects: {
         list: () => apiFetch('/seo/redirects/'),
         create: (data: any) => apiFetch('/seo/redirects/', { method: 'POST', body: JSON.stringify(data) }),
@@ -193,6 +206,16 @@ export const api = {
         update: (data: any) => apiFetch('/notifications/preferences/my_preferences/', { method: 'PUT' }),
         partialUpdate: (data: any) => apiFetch('/notifications/preferences/my_preferences/', { method: 'PATCH' }),
       }
+    },
+    settings: {
+      general: {
+        get: () => apiFetch('/accounts/settings/general/'),
+        update: (data: any) => apiFetch('/accounts/settings/general/', { method: 'PATCH', body: JSON.stringify(data) }),
+      },
+      profile: {
+        get: () => apiFetch('/accounts/settings/profile/'),
+        update: (data: any) => apiFetch('/accounts/settings/profile/', { method: 'PATCH', body: JSON.stringify(data) }),
+      },
     }
   }
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Search, Filter, Eye, CheckCircle, Truck, ShoppingBag, Download, CheckSquare, Square, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,16 +17,18 @@ import {
 } from "@/components/ui/select"
 
 export default function AdminOrdersPage() {
+  const router = useRouter()
   const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [search, setSearch] = useState("")
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null)
 
   const fetchOrders = useCallback(async () => {
     setLoading(true)
     try {
       const data = await api.orders.list()
-      setOrders(data)
+      setOrders(Array.isArray(data) ? data : data.results || [])
     } catch (err) {
       console.error("Failed to fetch orders", err)
     } finally {
@@ -49,6 +52,10 @@ export default function AdminOrdersPage() {
     } else {
       setSelectedIds(filteredOrders.map(o => o.id))
     }
+  }
+
+  const handleViewOrder = (orderId: number) => {
+    router.push(`/admin/orders/${orderId}`)
   }
 
   const handleBulkAction = async (action: string, value?: any) => {

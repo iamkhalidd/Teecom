@@ -4,7 +4,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     RegisterView, UserDetailView, UserViewSet, AddressViewSet,
     WalletViewSet, SupportTicketViewSet, SupportMessageViewSet,
-    AuditLogViewSet, TwoFactorView, SessionViewSet
+    AuditLogViewSet, TwoFactorView, SessionViewSet, AdminSettingsView,
+    AdminProfileView
 )
 
 router = DefaultRouter()
@@ -21,6 +22,10 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', UserDetailView.as_view(), name='user_detail'),
+    path('change-password/', UserDetailView.as_view(), name='change_password'),
+    path('me/avatar/', UserDetailView.as_view(), name='upload_avatar'),
     path('2fa/', TwoFactorView.as_view(), name='2fa_setup'),
+    path('settings/general/', AdminSettingsView.as_view(), name='admin_settings'),
+    path('settings/profile/', AdminProfileView.as_view(), name='admin_profile'),
     path('', include(router.urls)),
 ]

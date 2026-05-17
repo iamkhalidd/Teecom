@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, Globe, Link as LinkIcon, Plus, Trash2, ShieldCheck, AlertCircle } from "lucide-react"
+import { Search, Globe, Link as LinkIcon, Plus, Trash2, ShieldCheck, AlertCircle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -15,12 +15,14 @@ export default function SEOPage() {
   const [loading, setLoading] = useState(true)
   const [newRedirect, setNewRedirect] = useState({ source_path: "", destination_path: "", type: 301 })
   const [showAddRedirect, setShowAddRedirect] = useState(false)
+  const [healthMetrics, setHealthMetrics] = useState<any>(null)
+  const [isRegeneratingMap, setIsRegeneratingMap] = useState(false)
+  const [sitemapResult, setSitemapResult] = useState<any>(null)
 
   const fetchRedirects = useCallback(async () => {
-    setLoading(true)
     try {
       const data = await api.admin.seo.redirects.list()
-      setRedirects(data)
+      setRedirects(Array.isArray(data) ? data : data.results || [])
     } catch (err) {
       console.error("Failed to fetch redirects", err)
     } finally {
@@ -28,9 +30,19 @@ export default function SEOPage() {
     }
   }, [])
 
+  const fetchHealthMetrics = useCallback(async () => {
+    try {
+      const data = await api.admin.seo.healthCheck()
+      setHealthMetrics(data)
+    } catch (err) {
+      console.error("Failed to fetch health metrics", err)
+    }
+  }, [])
+
   useEffect(() => {
     fetchRedirects()
-  }, [fetchRedirects])
+    fetchHealthMetrics()
+  }, [fetchRedirects, fetchHealthMetrics])
 
   const handleAddRedirect = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,8 +51,9 @@ export default function SEOPage() {
       setNewRedirect({ source_path: "", destination_path: "", type: 301 })
       setShowAddRedirect(false)
       fetchRedirects()
-    } catch (err) {
-      alert("Failed to create redirect. Path might already exist.")
+      alert("Redirect created successfully!")
+    } catch (err: any) {
+      alert(err.message || "Failed to create redirect. Path might already exist.")
     }
   }
 
@@ -53,6 +66,25 @@ export default function SEOPage() {
         alert("Failed to delete redirect")
       }
     }
+  }
+
+  const handleRegenerateSitemap = async () => {
+    setIsRegeneratingMap(true)
+    try {
+      const result = await api.admin.seo.regenerateSitemap()
+      setSitemapResult(result)
+      alert("Sitemap regenerated successfully!")
+    } catch (err: any) {
+      alert(err.message || "Failed to regenerate sitemap")
+    } finally {
+      setIsRegeneratingMap(false)
+    }
+  }
+
+  const getProgressColor = (score: number) => {
+    if (score >= 80) return 'bg-success'
+    if (score >= 60) return 'bg-warning'
+    return 'bg-danger'
   }
 
   return (
@@ -166,23 +198,87 @@ export default function SEOPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="general" className="space-y-6">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="border-none shadow-sm bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-success" /> Sitemap Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex justify-between items-center">
-                    <span className="text-sm font-medium">Sitemap URL</span>
-                    <span className="text-xs text-primary font-bold">/sitemap.xml</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Your sitemap is automatically generated every 24 hours.</p>
-                  <Button variant="outline" className="w-full rounded-xl h-10 font-bold text-xs">Regenerate Now</Button>
-                </CardContent>
-              </Card>
+         <TabsContent value="general" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <Card className="border-none shadow-sm bg-white">
+                 <CardHeader>
+                   <CardTitle className="flex items-center gap-2">
+                     <ShieldCheck className="h-5 w-5 text-success" /> Sitemap Status
+                   </CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex justify-between items-center">
+                     <span className="text-sm font-medium">Sitemap URL</span>
+                     <span className="text-xs text-primary font-bold">/sitemap.xml</span>
+                   </div>
+                   {sitemapResult && (
+                     <div className="p-4 rounded-xl bg-success/10 border border-success/20">
+                       <p className="text-xs text-success mb-2"><strong>Last Generated:</strong></p>
+                       <p className="text-xs text-success">{sitemapResult.products_included} products, {sitemapResult.categories_included} categories</p>
+                     </div>
+                   )}
+                   <p className="text-xs text-muted-foreground">Your sitemap is available at <code className="bg-muted px-2 py-1 rounded text-[10px] font-mono">/sitemap.xml</code></p>
+                   <Button 
+                     onClick={handleRegenerateSitemap}
+                     disabled={isRegeneratingMap}
+                     className="w-full rounded-xl h-10 font-bold text-xs"
+                   >
+                     <RefreshCw className={`h-4 w-4 mr-2 ${isRegeneratingMap ? 'animate-spin' : ''}`} />
+                     {isRegeneratingMap ? 'Regenerating...' : 'Regenerate Now'}
+                   </Button>
+                 </CardContent>
+               </Card>
+
+               <Card className="border-none shadow-sm bg-white">
+                 <CardHeader>
+                   <CardTitle className="flex items-center gap-2">
+                     <AlertCircle className="h-5 w-5 text-warning" /> SEO Health
+                   </CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   {healthMetrics ? (
+                     <>
+                       <div className="space-y-2">
+                         <div className="flex justify-between text-xs">
+                           <span>Overall Score</span>
+                           <span className="font-bold">{healthMetrics.overall_score}%</span>
+                         </div>
+                         <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                           <div className={`h-full ${getProgressColor(healthMetrics.overall_score)} rounded-full`} style={{width: `${healthMetrics.overall_score}%`}} />
+                         </div>
+                       </div>
+                       <div className="space-y-2">
+                         <div className="flex justify-between text-xs">
+                           <span>Products with SEO Metadata</span>
+                           <span className="font-bold">{Math.round(healthMetrics.products.coverage_percent)}%</span>
+                         </div>
+                         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                           <div className="h-full bg-success rounded-full" style={{width: `${healthMetrics.products.coverage_percent}%`}} />
+                         </div>
+                         <p className="text-[10px] text-muted-foreground">{healthMetrics.products.with_seo} of {healthMetrics.products.total}</p>
+                       </div>
+                       <div className="space-y-2">
+                         <div className="flex justify-between text-xs">
+                           <span>Categories with SEO Metadata</span>
+                           <span className="font-bold">{Math.round(healthMetrics.categories.coverage_percent)}%</span>
+                         </div>
+                         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                           <div className="h-full bg-warning rounded-full" style={{width: `${healthMetrics.categories.coverage_percent}%`}} />
+                         </div>
+                         <p className="text-[10px] text-muted-foreground">{healthMetrics.categories.with_seo} of {healthMetrics.categories.total}</p>
+                       </div>
+                     </>
+                   ) : (
+                     <>
+                       <Skeleton className="h-6 w-full" />
+                       <Skeleton className="h-2 w-full" />
+                       <Skeleton className="h-6 w-full" />
+                     </>
+                   )}
+                 </CardContent>
+               </Card>
+            </div>
+         </TabsContent>
 
               <Card className="border-none shadow-sm bg-white">
                 <CardHeader>
